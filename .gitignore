@@ -1,0 +1,13 @@
+.env
+.idea/
+.vscode/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+storage/*
+!storage/.gitkeep
+
