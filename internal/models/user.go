@@ -4,86 +4,58 @@ import (
 	"time"
 )
 
-// User modelo base para autenticación
 type User struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	Email       string    `json:"email" gorm:"type:varchar(255);unique;not null"`
-	Password    string    `json:"-" gorm:"type:varchar(255);not null"` // "-" excluye el campo de las respuestas JSON
-	PhoneNumber string    `json:"phone_number" gorm:"type:varchar(255);unique;default:null"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	DeletedAt   time.Time `json:"deleted_at" gorm:"index"`
-}
-
-// Profile información personal y del juego
-type Profile struct {
-	ID           uint      `json:"id" gorm:"primaryKey"`
-	UserID       uint      `json:"user_id" gorm:"not null"`
-	FirstName    string    `json:"first_name" gorm:"type:varchar(255)"`
-	LastName     string    `json:"last_name" gorm:"type:varchar(255)"`
-	GameNickname string    `json:"game_nickname" gorm:"type:varchar(255)"`
-	GameRole     string    `json:"game_role" gorm:"type:varchar(255)"`
-	GameID       string    `json:"game_id" gorm:"type:varchar(255)"`
-	AccountType  string    `json:"account_type" gorm:"type:varchar(255)"` // F2P, LowSpender, MidSpender, WhaleSpender
-	ClanID       uint      `json:"clan_id" gorm:"default:null"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	DeletedAt    time.Time `json:"deleted_at" gorm:"index"`
+	Model
+	Email       string `json:"email" db:"VARCHAR(255) UNIQUE DEFAULT NULL"`    //unico pero opcional
+	Password    string `json:"-" db:"VARCHAR(255) NOT NULL"`                   // Contraseñas no deben ser nulas
+	PhoneNumber string `json:"phone_number" db:"VARCHAR(255) NOT NULL UNIQUE"` //obligatorio y unico
 }
 
 // Role modelo para roles
 type Role struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name" gorm:"type:varchar(50);unique;not null"`
-	Description string    `json:"description" gorm:"type:text"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	DeletedAt   time.Time `json:"deleted_at" gorm:"index"`
+	Model
+	Name        string `json:"name" db:"VARCHAR(50) UNIQUE NOT NULL"`
+	Description string `json:"description" db:"TEXT"`
 }
 
 // Permission modelo para permisos
 type Permission struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name" gorm:"type:varchar(50);unique;not null"`
-	Description string    `json:"description" gorm:"type:text"`
-	Module      string    `json:"module" gorm:"type:varchar(50)"` // Para agrupar permisos por módulo
-	Action      string    `json:"action" gorm:"type:varchar(50)"` // create, read, update, delete
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	DeletedAt   time.Time `json:"deleted_at" gorm:"index"`
+	Model
+	Name        string `json:"name" db:"VARCHAR(50) UNIQUE NOT NULL"`
+	Description string `json:"description" db:"TEXT"`
+	Module      string `json:"module" db:"VARCHAR(50)"` // Para agrupar permisos por módulo
+	Action      string `json:"action" db:"VARCHAR(50)"` // create, read, update, delete
 }
 
 // UserRole tabla pivote para la relación many-to-many entre User y Role
 type UserRole struct {
-	UserID    uint      `json:"user_id" gorm:"primaryKey"`
-	RoleID    uint      `json:"role_id" gorm:"primaryKey"`
-	CreatedAt time.Time `json:"created_at"`
+	UserID    uint      `json:"user_id" db:"PRIMARY KEY"`
+	RoleID    uint      `json:"role_id" db:"PRIMARY KEY"`
+	CreatedAt time.Time `json:"created_at" db:"DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // UserPermission tabla pivote para la relación many-to-many entre User y Permission
 type UserPermission struct {
-	UserID       uint      `json:"user_id" gorm:"primaryKey"`
-	PermissionID uint      `json:"permission_id" gorm:"primaryKey"`
-	CreatedAt    time.Time `json:"created_at"`
+	UserID       uint      `json:"user_id" db:"PRIMARY KEY"`
+	PermissionID uint      `json:"permission_id" db:"PRIMARY KEY"`
+	CreatedAt    time.Time `json:"created_at" db:"DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // RolePermission tabla pivote para la relación many-to-many entre Role y Permission
 type RolePermission struct {
-	RoleID       uint      `json:"role_id" gorm:"primaryKey"`
-	PermissionID uint      `json:"permission_id" gorm:"primaryKey"`
-	CreatedAt    time.Time `json:"created_at"`
+	RoleID       uint      `json:"role_id" db:"PRIMARY KEY"`
+	PermissionID uint      `json:"permission_id" db:"PRIMARY KEY"`
+	CreatedAt    time.Time `json:"created_at" db:"DEFAULT CURRENT_TIMESTAMP"`
 }
 
 // UserToken modelo para manejar tokens JWT
 type UserToken struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	UserID    uint      `json:"user_id" gorm:"not null"`
-	Token     string    `json:"token" gorm:"type:text;not null"`
-	ExpiresAt time.Time `json:"expires_at" gorm:"not null"`
-	LastUsed  time.Time `json:"last_used"`
-	UserAgent string    `json:"user_agent" gorm:"type:varchar(255)"`
-	IP        string    `json:"ip" gorm:"type:varchar(45)"` // Para IPv6
-	IsRevoked bool      `json:"is_revoked" gorm:"default:false"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Model
+	UserID    uint      `json:"user_id" db:"NOT NULL"`
+	Token     string    `json:"token" db:"TEXT NOT NULL"`
+	ExpiresAt time.Time `json:"expires_at" db:"NOT NULL"`
+	LastUsed  time.Time `json:"last_used" db:"DEFAULT CURRENT_TIMESTAMP"`
+	UserAgent string    `json:"user_agent" db:"VARCHAR(255)"`
+	IP        string    `json:"ip" db:"VARCHAR(45)"` // Para IPv6
+	IsRevoked bool      `json:"is_revoked" db:"DEFAULT FALSE"`
 }
