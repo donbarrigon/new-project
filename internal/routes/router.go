@@ -11,24 +11,6 @@ type route struct {
 	Name    string
 }
 
-var healthCheck = []route{
-	{
-		Path:    "/health-check",
-		Handler: handleGet(handleHealthCheck),
-		Name:    "health-check",
-	},
-	{
-		Path:    "/user",
-		Handler: handleGet(UserIndex),
-		Name:    "health-check",
-	},
-	{
-		Path:    "/user/{id}",
-		Handler: handleGet(UserShow),
-		Name:    "health-check",
-	},
-}
-
 func Setup() http.Handler {
 
 	// Add public routes to router
@@ -38,6 +20,13 @@ func Setup() http.Handler {
 	return router
 }
 
+// registra las rutas en el router
+func registerRoutes(prefix string, middleware []func(http.HandlerFunc) http.HandlerFunc, handler []route) {
+	for _, r := range handler {
+		router.HandleFunc(prefix+r.Path, use(middleware, r.Handler))
+	}
+}
+
 // Add middleware here, if needed.
 func use(middleware []func(http.HandlerFunc) http.HandlerFunc, handler http.HandlerFunc) http.HandlerFunc {
 	// Aplica los middlewares de forma anidada
@@ -45,12 +34,6 @@ func use(middleware []func(http.HandlerFunc) http.HandlerFunc, handler http.Hand
 		handler = middleware[i](handler)
 	}
 	return handler
-}
-
-func registerRoutes(prefix string, middleware []func(http.HandlerFunc) http.HandlerFunc, handler []route) {
-	for _, r := range handler {
-		router.HandleFunc(prefix+r.Path, use(middleware, r.Handler))
-	}
 }
 
 // Create route GET
