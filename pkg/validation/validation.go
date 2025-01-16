@@ -16,20 +16,13 @@ type Validation struct {
 	Custom   func(value any) error
 }
 
-// Definir el struct a validar
-type User struct {
-	Name  string
-	Email string
-	Age   int
-}
-
-// Función auxiliar para crear punteros a int
+// Función auxiliar para crear punteros a float
 func FloatPtr(f float64) *float64 {
 	return &f
 }
 
 // Validar si un campo es requerido
-func validateRequired(value any) error {
+func Required(value any) error {
 	if value == "" {
 		return errors.New("field is required")
 	}
@@ -37,7 +30,7 @@ func validateRequired(value any) error {
 }
 
 // Validar si el valor es mayor o igual al mínimo
-func validateMin(value any, min float64) error {
+func Min(value any, min float64) error {
 	// Validar Min
 	switch v := value.(type) {
 	case int:
@@ -58,7 +51,7 @@ func validateMin(value any, min float64) error {
 	return nil
 }
 
-func validateMax(value any, max float64) error {
+func Max(value any, max float64) error {
 	// Validar Max
 	switch v := value.(type) {
 	case int:
@@ -80,7 +73,7 @@ func validateMax(value any, max float64) error {
 }
 
 // Validar si un campo tiene un formato de correo electrónico válido
-func validateEmail(value any) error {
+func Email(value any) error {
 	if v, ok := value.(string); ok {
 		// Expresión regular para validar el formato del email
 		regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -93,13 +86,14 @@ func validateEmail(value any) error {
 }
 
 // Función para validar los campos de un struct
-func ValidateStruct(v any, rules map[string]Validation) error {
+func Struct(v any, rules map[string]Validation) error {
 	// Obtener el tipo de la estructura para iterar sobre sus campos
 	structValue := reflect.ValueOf(v)
 	structType := reflect.TypeOf(v)
 
 	// Iterar sobre los campos del struct
-	for i := 0; i < structValue.NumField(); i++ {
+	numFields := structValue.NumField()
+	for i := 0; i < numFields; i++ {
 		field := structValue.Field(i)
 		fieldName := structType.Field(i).Name
 		fieldValue := field.Interface()
@@ -112,28 +106,28 @@ func ValidateStruct(v any, rules map[string]Validation) error {
 
 		// Validar "required"
 		if fieldRules.Required {
-			if err := validateRequired(fieldValue); err != nil {
+			if err := Required(fieldValue); err != nil {
 				return fmt.Errorf("%s: %v", fieldName, err)
 			}
 		}
 
 		// Validar "min"
 		if fieldRules.Min != nil {
-			if err := validateMin(fieldValue, *fieldRules.Min); err != nil {
+			if err := Min(fieldValue, *fieldRules.Min); err != nil {
 				return fmt.Errorf("%s: %v", fieldName, err)
 			}
 		}
 
 		// Validar "max"
 		if fieldRules.Max != nil {
-			if err := validateMax(fieldValue, *fieldRules.Max); err != nil {
+			if err := Max(fieldValue, *fieldRules.Max); err != nil {
 				return fmt.Errorf("%s: %v", fieldName, err)
 			}
 		}
 
 		// Validar "email"
 		if fieldRules.Email {
-			if err := validateEmail(fieldValue); err != nil {
+			if err := Email(fieldValue); err != nil {
 				return fmt.Errorf("%s: %v", fieldName, err)
 			}
 		}
