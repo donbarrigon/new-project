@@ -1,9 +1,12 @@
 package request
 
-import "github.com/erespereza/clan-de-raid/pkg/validation"
+import (
+	"github.com/erespereza/clan-de-raid/pkg/validation"
+)
 
 // Definir el struct a validar
 type User struct {
+	Request
 	Name  string
 	Email string
 	Age   int

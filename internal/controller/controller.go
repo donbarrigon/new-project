@@ -13,7 +13,7 @@ type ApiController interface {
 }
 
 type WebController interface {
-	Index(w http.ResponseWriter, r *http.Request) // /
+	Index(w http.ResponseWriter, r *http.Request)
 	Show(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	Store(w http.ResponseWriter, r *http.Request)

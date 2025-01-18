@@ -4,10 +4,19 @@ import (
 	"log"
 	"os"
 
+	"github.com/erespereza/clan-de-raid/config"
 	"github.com/erespereza/clan-de-raid/internal/app"
+	"github.com/erespereza/clan-de-raid/internal/model"
 )
 
 func main() {
+
+	// Carga las variables del archivo .env
+	config.Load()
+
+	// Conecta con la base de datos
+	model.Connect()
+
 	// Configura el logger
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 

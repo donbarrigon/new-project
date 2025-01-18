@@ -1,11 +1,11 @@
-package models
+package model
 
 import (
 	"time"
 )
 
 type User struct {
-	Model
+	ExtendedModel
 	Email       string `json:"email" db:"VARCHAR(255) UNIQUE DEFAULT NULL"`    //unico pero opcional
 	Password    string `json:"-" db:"VARCHAR(255) NOT NULL"`                   // Contraseñas no deben ser nulas
 	PhoneNumber string `json:"phone_number" db:"VARCHAR(255) NOT NULL UNIQUE"` //obligatorio y unico
@@ -13,14 +13,14 @@ type User struct {
 
 // Role modelo para roles
 type Role struct {
-	Model
+	ExtendedModel
 	Name        string `json:"name" db:"VARCHAR(50) UNIQUE NOT NULL"`
 	Description string `json:"description" db:"TEXT"`
 }
 
 // Permission modelo para permisos
 type Permission struct {
-	Model
+	ExtendedModel
 	Name        string `json:"name" db:"VARCHAR(50) UNIQUE NOT NULL"`
 	Description string `json:"description" db:"TEXT"`
 	Module      string `json:"module" db:"VARCHAR(50)"` // Para agrupar permisos por módulo
@@ -50,7 +50,7 @@ type RolePermission struct {
 
 // UserToken modelo para manejar tokens JWT
 type UserToken struct {
-	Model
+	ExtendedModel
 	UserID    uint      `json:"user_id" db:"NOT NULL"`
 	Token     string    `json:"token" db:"TEXT NOT NULL"`
 	ExpiresAt time.Time `json:"expires_at" db:"NOT NULL"`

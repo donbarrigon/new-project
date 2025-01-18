@@ -1,8 +1,8 @@
-package models
+package model
 
 // Profile información personal y del juego
 type Profile struct {
-	Model
+	ExtendedModel
 	UserID       uint   `json:"user_id" db:"NOT NULL"`
 	Name         string `json:"name" db:"VARCHAR(255)"`
 	GameNickname string `json:"game_nickname" db:"VARCHAR(255)"`
