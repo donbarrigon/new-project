@@ -3,6 +3,7 @@ package formatter
 import (
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 var IrregularPlurals = map[string]string{
@@ -93,7 +94,47 @@ func ToSnakeCase(s string) string {
 	return re.ReplaceAllString(snakeCase, "_")
 }
 
-// Funciones auxiliares permanecen igual
+// ToPascalCase convierte la cadena a una cadena en formato PascalCase
+func ToPascalCase(s string) string {
+	// Si el string está vacío, retornamos vacío
+	if len(s) == 0 {
+		return s
+	}
+
+	// Convertir el string a una slice de runes para manejar caracteres Unicode
+	runes := []rune(s)
+	var result strings.Builder
+
+	// Variable para controlar si el siguiente carácter debe ser mayúscula
+	nextUpper := true
+
+	for i := 0; i < len(runes); i++ {
+		// Si es un carácter especial o espacio, marcamos que el siguiente debe ser mayúscula
+		if !unicode.IsLetter(runes[i]) && !unicode.IsNumber(runes[i]) {
+			nextUpper = true
+			continue
+		}
+
+		// Si es un carácter en mayúscula precedido por una letra minúscula
+		// (caso camelCase), lo tratamos como el inicio de una nueva palabra
+		if i > 0 && unicode.IsUpper(runes[i]) && unicode.IsLower(runes[i-1]) {
+			nextUpper = true
+		}
+
+		if nextUpper {
+			// Convertir a mayúscula si es necesario
+			result.WriteRune(unicode.ToUpper(runes[i]))
+			nextUpper = false
+		} else {
+			// Convertir a minúscula para el resto de los caracteres
+			result.WriteRune(unicode.ToLower(runes[i]))
+		}
+	}
+
+	return result.String()
+}
+
+// Funciones auxiliares
 func isUpper(r rune) bool {
 	return r >= 'A' && r <= 'Z'
 }
