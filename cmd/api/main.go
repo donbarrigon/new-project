@@ -6,7 +6,7 @@ import (
 
 	"github.com/erespereza/new-project/config"
 	"github.com/erespereza/new-project/internal/app"
-	"github.com/erespereza/new-project/internal/model"
+	"github.com/erespereza/new-project/internal/orm"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	config.Load()
 
 	// Conecta con la base de datos
-	model.Connect()
+	orm.Connect()
 
 	// Configura el logger
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)

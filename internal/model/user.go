@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	. "github.com/erespereza/new-project/internal/orm"
 )
 
 // User modelo para usuarios

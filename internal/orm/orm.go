@@ -1,4 +1,4 @@
-package model
+package orm
 
 import (
 	"database/sql"
@@ -6,11 +6,13 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"strings"
 
 	"github.com/erespereza/new-project/pkg/formatter"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+// db es la instancia global de la base de datos
+var db *sql.DB
 
 // Connect establece una conexión con la base de datos
 func Connect() {
@@ -53,47 +55,6 @@ func Connect() {
 // id puede ser int, float o string
 // columns es opcional, si no se proporciona se usan todos los campos del struct
 // se valida que almenos una de las columnas se valida para la busqueda
-func (e *ExtendsModel) Find(id any, columns ...string) error {
-
-	// Validar tipo de ID
-	switch id.(type) {
-	case int, int32, int64, float32, float64, string:
-		// tipos válidos no se hace nada
-	default:
-		return fmt.Errorf("id debe ser numérico o string")
-	}
-
-	// Determinar las columnas a consultar
-	var selectedColumns []string
-	if len(columns) > 0 {
-		// Usar las columnas proporcionadas
-		selectedColumns = columns
-	} else {
-		// Usar las columnas del modelo
-		selectedColumns = e.columns
-	}
-
-	// Si no hay columnas seleccionadas, retornar error
-	if len(selectedColumns) == 0 {
-		return fmt.Errorf("no hay campos válidos para consultar")
-	}
-
-	// Construir la consulta SQL
-	query := fmt.Sprintf(
-		"SELECT %s FROM %s WHERE id = $1",
-		strings.Join(selectedColumns, ", "),
-		e.tableName,
-	)
-
-	// Ejecutar la consulta
-	row := db.QueryRow(query, id)
-
-	if err := e.scanRows(e.model, row, selectedColumns); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func (e *ExtendsModel) scanRows(m *Model, row *sql.Row, columns []string) error {
 

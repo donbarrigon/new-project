@@ -1,7 +1,6 @@
-package model
+package orm
 
 import (
-	"database/sql"
 	"reflect"
 	"time"
 
@@ -59,9 +58,6 @@ type Model interface {
 	Find(id any, columns ...string) error
 }
 
-// db es la instancia global de la base de datos
-var db *sql.DB
-
 // ID es una estructura base para modelos que requieran un id con autoincremento
 type ID struct {
 	Id uint64 `json:"id" db:"BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY"`
@@ -82,6 +78,11 @@ type IntegerID struct {
 	Id uint32 `json:"id" db:"INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY"`
 }
 
+// UUID es una estructura base para modelos que requieran un id unico de tipo UUID
+type UUID struct {
+	UUID string `json:"uuid" db:"CHAR(36) UNIQUE NOT NULL DEFAULT (UUID())"`
+}
+
 // CreateAt agrega el campo create_at para registrar la fecha de creación.
 type CreatedAt struct {
 	CreatedAt time.Time `json:"created_at" db:"DEFAULT CURRENT_TIMESTAMP"`
@@ -97,6 +98,21 @@ type SoftDelete struct {
 	DeletedAt time.Time `json:"deleted_at" db:"INDEX"`
 }
 
+// Active agrega el campo active para establecer si un modelo está activo.
+type Active struct {
+	Active bool `json:"active" db:"BOOLEAN DEFAULT 1"`
+}
+
+// ActiveAt agrega el campo active_at para registrar la fecha de activación.
+type ActiveAt struct {
+	ActiveAt time.Time `json:"active_at" db:"DEFAULT CURRENT_TIMESTAMP"`
+}
+
+// Priority agrega el campo priority para establecer la prioridad de un modelo.
+type Priority struct {
+	Priority int `json:"priority" db:"INT DEFAULT 0"`
+}
+
 // Timestamps agrega los campos create_at y updated_at para registrar la fecha de creación y actualización.
 type Timestamps struct {
 	CreatedAt
@@ -110,11 +126,12 @@ type AllTimestamps struct {
 }
 
 type ExtendsModel struct {
-	model     *Model
-	tableName string
-	columns   []string
-	fillable  []string
-	guarded   []string
+	model         *Model
+	tableName     string
+	columns       []string
+	selectColumns []string
+	fillable      []string
+	guarded       []string
 	// selectColumns []string
 	// where         [][]string
 	// orderBy       []string
