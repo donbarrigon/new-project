@@ -1,17 +1,21 @@
 package routes
 
-var apiPublic = []route{
+import "github.com/erespereza/new-project/internal/controller"
+
+var apiPublic = []Route{
 	{
-		Path:    "/",
-		Handler: handlerGet(controller.Example.IndexApi),
-		Name:    "index",
+		Path:    "/user",
+		Methods: AllowMethods(get, post, delete),
+		Handler: controller.UserIndex,
+		Name:    "user-index",
 	},
 }
 
-var apiPrivate = []route{
+var apiPrivate = []Route{
 	{
-		Path:    "/",
-		Handler: handlerGet(controller.Example.IndexApi),
-		Name:    "index",
+		Path:    "/user/show",
+		Methods: AllowMethods(get),
+		Handler: controller.UserShow,
+		Name:    "user-show",
 	},
 }

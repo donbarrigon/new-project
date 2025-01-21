@@ -1,17 +1,21 @@
 package routes
 
-var webPublic = []route{
+import "github.com/erespereza/new-project/internal/controller"
+
+var webPublic = []Route{
 	{
-		Path:    "/",
-		Handler: handlerGet(Index),
-		Name:    "index",
+		Path:    "/user",
+		Methods: AllowMethods(get),
+		Handler: controller.UserIndex,
+		Name:    "user-index",
 	},
 }
 
-var webPrivate = []route{
+var webPrivate = []Route{
 	{
-		Path:    "/",
-		Handler: handlerGet(Index),
-		Name:    "index",
+		Path:    "/user/show",
+		Methods: AllowMethods(get),
+		Handler: controller.UserShow,
+		Name:    "user-show",
 	},
 }

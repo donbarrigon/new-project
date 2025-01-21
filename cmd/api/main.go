@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/erespereza/clan-de-raid/config"
-	"github.com/erespereza/clan-de-raid/internal/app"
-	"github.com/erespereza/clan-de-raid/internal/model"
+	"github.com/erespereza/new-project/config"
+	"github.com/erespereza/new-project/internal/app"
+	"github.com/erespereza/new-project/internal/model"
 )
 
 func main() {

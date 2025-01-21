@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/erespereza/new-project/internal/routes"
 )
 
 // Response estructura para respuestas HTTP estandarizadas
@@ -84,7 +86,7 @@ func setupRoutes() *http.ServeMux {
 func StartServer(port string) *http.Server {
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      setupRoutes(),
+		Handler:      routes.NewRouter(),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,

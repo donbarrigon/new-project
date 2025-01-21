@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// User modelo para usuarios
 type User struct {
 	ExtendsModel
 	ID
@@ -13,17 +14,18 @@ type User struct {
 	PhoneNumber string `json:"phone_number" db:"VARCHAR(255) NOT NULL UNIQUE"` //obligatorio y unico
 }
 
-// Llamada correcta
-// user := model.User{}.New() // 'user' es ahora un puntero a User
-func (u *User) New() *User {
-	u.SetModel(u)
-	u.Fillable()
-	u.Guarded("password")
-	return u
+// NewUser función estática (la más eficiente) para crear la instancia a un struct de tipo usuario
+func NewUser() *User {
+	model := &User{}
+	model.SetModel(model)
+	model.Fillable()
+	model.Guarded("password")
+	return model
 }
 
 // Role modelo para roles
 type Role struct {
+	ExtendsModel
 	ID
 	AllTimestamps
 	Name        string `json:"name" db:"VARCHAR(50) UNIQUE NOT NULL"`
@@ -32,6 +34,7 @@ type Role struct {
 
 // Permission modelo para permisos
 type Permission struct {
+	ExtendsModel
 	ID
 	AllTimestamps
 	Name        string `json:"name" db:"VARCHAR(50) UNIQUE NOT NULL"`
@@ -42,6 +45,7 @@ type Permission struct {
 
 // UserRole tabla pivote para la relación many-to-many entre User y Role
 type UserRole struct {
+	ExtendsModel
 	UserID uint `json:"user_id" db:"PRIMARY KEY"`
 	RoleID uint `json:"role_id" db:"PRIMARY KEY"`
 	CreatedAt
@@ -49,6 +53,7 @@ type UserRole struct {
 
 // UserPermission tabla pivote para la relación many-to-many entre User y Permission
 type UserPermission struct {
+	ExtendsModel
 	UserID       uint `json:"user_id" db:"PRIMARY KEY"`
 	PermissionID uint `json:"permission_id" db:"PRIMARY KEY"`
 	CreatedAt
@@ -56,6 +61,7 @@ type UserPermission struct {
 
 // RolePermission tabla pivote para la relación many-to-many entre Role y Permission
 type RolePermission struct {
+	ExtendsModel
 	RoleID       uint `json:"role_id" db:"PRIMARY KEY"`
 	PermissionID uint `json:"permission_id" db:"PRIMARY KEY"`
 	CreatedAt
@@ -63,6 +69,7 @@ type RolePermission struct {
 
 // UserToken modelo para manejar tokens JWT
 type UserToken struct {
+	ExtendsModel
 	ID
 	Timestamps
 	UserID    uint      `json:"user_id" db:"NOT NULL"`

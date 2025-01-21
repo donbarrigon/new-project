@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/erespereza/clan-de-raid/pkg/validation"
+	"github.com/erespereza/new-project/pkg/validation"
 )
 
 type FormRequest interface {

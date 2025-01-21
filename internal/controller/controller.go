@@ -1,25 +1,24 @@
 package controller
 
-import "net/http"
+import (
+	"net/http"
 
-type ApiController interface {
-	Index(w http.ResponseWriter, r *http.Request) // funcion index
-	Show(w http.ResponseWriter, r *http.Request)
-	Store(w http.ResponseWriter, r *http.Request)
-	Update(w http.ResponseWriter, r *http.Request)
-	Delete(w http.ResponseWriter, r *http.Request)
-	Restore(w http.ResponseWriter, r *http.Request)
-	Destroy(w http.ResponseWriter, r *http.Request)
+	"github.com/erespereza/new-project/internal/model"
+)
+
+type ControllerFunc func(ctx *Context)
+
+type Context struct {
+	Request *http.Request
+	Writer  http.ResponseWriter
+	Params  map[string]string
+	User    *model.User
 }
 
-type WebController interface {
-	Index(w http.ResponseWriter, r *http.Request)
-	Show(w http.ResponseWriter, r *http.Request)
-	Create(w http.ResponseWriter, r *http.Request)
-	Store(w http.ResponseWriter, r *http.Request)
-	Edit(w http.ResponseWriter, r *http.Request)
-	Update(w http.ResponseWriter, r *http.Request)
-	Delete(w http.ResponseWriter, r *http.Request)
-	Restore(w http.ResponseWriter, r *http.Request)
-	Destroy(w http.ResponseWriter, r *http.Request)
+func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+	return &Context{
+		Request: r,
+		Writer:  w,
+		// Params:   mux.Vars(r),
+	}
 }

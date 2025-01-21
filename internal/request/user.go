@@ -1,8 +1,6 @@
 package request
 
-import (
-	"github.com/erespereza/clan-de-raid/pkg/validation"
-)
+import "github.com/erespereza/new-project/pkg/validation"
 
 // Definir el struct a validar
 type User struct {
