@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"reflect"
-	"strconv"
 
 	"github.com/erespereza/new-project/pkg/validation"
 )
@@ -22,38 +21,6 @@ type FormRequest interface {
 // Implementación de FormRequest para un struct
 type Request struct {
 	Query map[string]any
-}
-
-// Toma los valores de la url y los parsea en un map
-func (r *Request) ParseQuery(req *http.Request) {
-	// Inicializar el mapa Query si no está inicializado
-	if r.Query == nil {
-		r.Query = make(map[string]any)
-	}
-
-	// Obtener los parámetros de la URL
-	queryParams := req.URL.Query()
-
-	// Iterar sobre los parámetros de la URL
-	for key, values := range queryParams {
-		// El valor puede ser un solo valor o una lista, tomo solo el primer valor
-		value := values[0]
-
-		// Intentar convertir el valor a diferentes tipos
-		if intValue, err := strconv.Atoi(value); err == nil {
-			// Es un int
-			r.Query[key] = intValue
-		} else if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
-			// Es un float
-			r.Query[key] = floatValue
-		} else if boolValue, err := strconv.ParseBool(value); err == nil {
-			// Es un bool
-			r.Query[key] = boolValue
-		} else {
-			// Es un string (por defecto)
-			r.Query[key] = value
-		}
-	}
 }
 
 func (r *Request) Validate(request FormRequest, req *http.Request) error {
@@ -92,7 +59,7 @@ func (r *Request) Validate(request FormRequest, req *http.Request) error {
 	}
 
 	// Si no hay errores, parsear los parámetros de la URL
-	r.ParseQuery(req)
+	//r.ParseQuery(req)
 
 	return nil
 }
