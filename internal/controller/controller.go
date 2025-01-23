@@ -1,10 +1,16 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/erespereza/new-project/internal/orm"
+	"github.com/erespereza/new-project/internal/request"
 )
 
 type ControllerFunc func(ctx *Context)
@@ -12,6 +18,7 @@ type ControllerFunc func(ctx *Context)
 type Context struct {
 	Request *http.Request
 	Writer  http.ResponseWriter
+	Body    any
 	User    *orm.Model
 }
 
@@ -101,3 +108,76 @@ func (c *Context) queryParam(key string) string {
 	}
 	return ""
 }
+
+// Validate valida los datos del request y los guarda en c.Body
+// forma de uso if err := ctx.Validate([]FormRequest{}) err != nil { return err }
+func (c *Context) Validate(req []request.FormRequest) error {
+	// Leer completamente el cuerpo de la solicitud
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return fmt.Errorf("error leyendo el cuerpo de la solicitud: %v", err)
+	}
+	defer c.Request.Body.Close()
+
+	// Eliminar espacios en blanco
+	body = bytes.TrimSpace(body)
+
+	switch body[0] {
+	case '[':
+		// JSON array - slice de implementaciones de FormRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			return fmt.Errorf("error decodificando array JSON: %v", err)
+		}
+		c.Body = &req
+	case '{':
+		// JSON objeto
+		if err := json.Unmarshal(body, &req); err != nil {
+			return fmt.Errorf("error decodificando objeto JSON: %v", err)
+		}
+		c.Body = &req[0]
+	default:
+		return errors.New("el JSON debe ser un array u objeto")
+	}
+
+	return nil
+}
+
+/*
+func (c *Context) Validate_descartado(req *request.FormRequest) error {
+	// decodificar el body
+	decoder := json.NewDecoder(c.Request.Body)
+
+	//tomar el token para sabaer si es array o objeto
+	token, err := decoder.Token()
+	if err != nil {
+		log.Fatal("Error leyendo el token:", err)
+	}
+
+	switch delim := token.(type) {
+	case json.Delim:
+		if delim == '[' {
+			// el json es un array
+			// Procesar el array
+			var elemen []request.FormRequest
+			for decoder.More() {
+
+				if err := decoder.Decode(req); err != nil {
+					return fmt.Errorf("Error decodificando elemento del array: %v", err)
+				}
+				elemen = append(elemen, *req)
+			}
+			c.Body = elemen
+		} else if delim == '{' {
+			// el json es un objeto
+			// Procesar el objeto y guardarlo en c.Body
+			if err := decoder.Decode(req); err != nil {
+				return fmt.Errorf("error decodificando el objeto: %v", err)
+			}
+			c.Body = *req
+		}
+		return nil
+	default:
+		return errors.New("El JSON no es un array ni un objeto valido")
+	}
+}
+*/
