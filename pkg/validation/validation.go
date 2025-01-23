@@ -3,141 +3,140 @@ package validation
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"regexp"
+	"strings"
+	"time"
+
+	"github.com/erespereza/new-project/pkg/formatter"
 )
 
-// Definir las reglas de validación
-type Validation struct {
-	Required bool
-	Min      *float64
-	Max      *float64
-	Email    bool
-	Custom   func(value any) error
-}
-
-// Función auxiliar para crear punteros a float
-func FloatPtr(f float64) *float64 {
-	return &f
-}
-
-// Validar si un campo es requerido
+// Required valida que el campo no sea nulo ni vacío.
 func Required(value any) error {
-	if value == "" {
-		return errors.New("field is required")
+	if value == nil {
+		return errors.New("el campo es obligatorio")
 	}
-	return nil
-}
 
-// Validar si el valor es mayor o igual al mínimo
-func Min(value any, min float64) error {
-	// Validar Min
 	switch v := value.(type) {
-	case int:
-		if float64(v) < min {
-			return fmt.Errorf("value must be greater than or equal to %f", min)
-		}
-	case float64:
-		if v < min {
-			return fmt.Errorf("value must be greater than or equal to %f", min)
-		}
 	case string:
-		if len(v) < int(min) { // Para comparar la longitud con min flotante
-			return fmt.Errorf("value length must be greater than or equal to %f characters", min)
+		if strings.TrimSpace(v) == "" {
+			return errors.New("el campo es obligatorio")
+		}
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		// Números diferentes cero son válidos
+		if v != 0 {
+			return errors.New("el campo es obligatorio")
+		}
+	case float32, float64:
+		// Números decimales diferentes de cero siempre válidos
+		if v != 0 {
+			return errors.New("el campo es obligatorio")
+		}
+	case bool:
+		// Booleanos true son siempre válidos
+		if !v {
+			return errors.New("el campo es obligatorio")
+		}
+	case []interface{}:
+		if len(v) == 0 {
+			return errors.New("el campo es obligatorio")
+		}
+	case map[string]interface{}:
+		if len(v) == 0 {
+			return errors.New("el campo es obligatorio")
+		}
+	case time.Time:
+		if v.IsZero() {
+			return errors.New("el campo es obligatorio")
 		}
 	default:
-		return fmt.Errorf("unsupported value type for Min validation")
+		// Para tipos personalizados/structs, verificar si implementa IsZero() bool
+		if i, ok := value.(interface{ IsZero() bool }); ok {
+			if i.IsZero() {
+				return errors.New("el campo es obligatorio")
+			}
+		}
 	}
+
 	return nil
 }
 
-func Max(value any, max float64) error {
-	// Validar Max
-	switch v := value.(type) {
-	case int:
-		if float64(v) > max {
-			return fmt.Errorf("value must be less than or equal to %f", max)
-		}
-	case float64:
-		if v > max {
-			return fmt.Errorf("value must be less than or equal to %f", max)
-		}
+type numeric interface {
+	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | string
+}
+
+// Min valida si el valor es mayor o igual al mínimo.
+// Los strings se validan que la longitud de caracteres sea mayor o igual al mínimo.
+func Min[T numeric, U numeric](value T, min U) error {
+	switch v := any(value).(type) {
 	case string:
-		if len(v) > int(max) { // Para comparar la longitud con max flotante
-			return fmt.Errorf("value length must be less than or equal to %f characters", max)
+		// Convierte los valores a int64 para comparar
+		m, err := formatter.ToInt64(min)
+		if err != nil {
+			return err
+		}
+		// Se valida la longitud y se convierte len a int64 para que sean del mismo tipo y poder comparar
+		if int64(len(v)) < m {
+			return fmt.Errorf("la longitud del texto %d es menor que la longitud mínima permitida de %d", len(v), m)
 		}
 	default:
-		return fmt.Errorf("unsupported value type for Max validation")
-	}
-	return nil
-}
+		// Convierte los valores a float64 para comparar
+		valueFloat, err1 := formatter.ToFloat64(value)
+		minFloat, err2 := formatter.ToFloat64(min)
+		if err1 != nil {
+			return fmt.Errorf("error al convertir el valor a float64: %v", err1)
+		}
+		if err2 != nil {
+			return fmt.Errorf("error al convertir el valor minimo a float64: %v", err2)
+		}
 
-// Validar si un campo tiene un formato de correo electrónico válido
-func Email(value any) error {
-	if v, ok := value.(string); ok {
-		// Expresión regular para validar el formato del email
-		regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-		matched, _ := regexp.MatchString(regex, v)
-		if !matched {
-			return errors.New("invalid email format")
+		// Comparación de valores numéricos
+		if valueFloat < minFloat {
+			return fmt.Errorf("el valor %v es menor que el valor mínimo permitido de %v", value, min)
 		}
 	}
 	return nil
 }
 
-// Función para validar los campos de un struct
-func Struct(v any, rules map[string]Validation) error {
-	// Obtener el tipo de la estructura para iterar sobre sus campos
-	structValue := reflect.ValueOf(v)
-	structType := reflect.TypeOf(v)
-
-	// Iterar sobre los campos del struct
-	numFields := structValue.NumField()
-	for i := 0; i < numFields; i++ {
-		field := structValue.Field(i)
-		fieldName := structType.Field(i).Name
-		fieldValue := field.Interface()
-
-		// Obtener las reglas de validación para el campo actual
-		fieldRules, exists := rules[fieldName]
-		if !exists {
-			continue
+// Max Valida si el valor es menor o igual al máximo.
+// los strings se valida que la longitud de caracteres sea menor o igual al máximo.
+func Max[T numeric, U numeric](value T, max U) error {
+	switch v := any(value).(type) {
+	case string:
+		// convierte los valores a int64 para comparar
+		m, err := formatter.ToInt64(max)
+		if err != nil {
+			return err
+		}
+		//se valida la longitud y se conviente len a int 64 para que sean del mismo tipo y poder comparar
+		if int64(len(v)) > m {
+			return fmt.Errorf("la longitud del texto %d excede el maximo permitido de %d", len(v), m)
+		}
+	default:
+		// convierte los valores a float64 para comparar
+		valueFloat, err1 := formatter.ToFloat64(value)
+		maxFloat, err2 := formatter.ToFloat64(max)
+		if err1 != nil {
+			return fmt.Errorf("error al convertir el valor a float64: %v", err1)
+		}
+		if err2 != nil {
+			return fmt.Errorf("error al convertir el valor máximo a float64: %v", err2)
 		}
 
-		// Validar "required"
-		if fieldRules.Required {
-			if err := Required(fieldValue); err != nil {
-				return fmt.Errorf("%s: %v", fieldName, err)
-			}
+		// Comparación de valores numéricos
+		if valueFloat > maxFloat {
+			return fmt.Errorf("el valor %v es mayor que el valor maximo permitido de %v", value, max)
 		}
+	}
+	return nil
+}
 
-		// Validar "min"
-		if fieldRules.Min != nil {
-			if err := Min(fieldValue, *fieldRules.Min); err != nil {
-				return fmt.Errorf("%s: %v", fieldName, err)
-			}
-		}
-
-		// Validar "max"
-		if fieldRules.Max != nil {
-			if err := Max(fieldValue, *fieldRules.Max); err != nil {
-				return fmt.Errorf("%s: %v", fieldName, err)
-			}
-		}
-
-		// Validar "email"
-		if fieldRules.Email {
-			if err := Email(fieldValue); err != nil {
-				return fmt.Errorf("%s: %v", fieldName, err)
-			}
-		}
-
-		// Validación personalizada
-		if fieldRules.Custom != nil {
-			if err := fieldRules.Custom(fieldValue); err != nil {
-				return fmt.Errorf("%s: %v", fieldName, err)
-			}
-		}
+// Email valida si un campo tiene un formato de correo electrónico válido
+func Email(value string) error {
+	// Expresión regular para validar el formato del email
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	matched, _ := regexp.MatchString(regex, value)
+	if !matched {
+		return errors.New("invalid email format")
 	}
 	return nil
 }

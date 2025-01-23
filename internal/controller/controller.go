@@ -65,7 +65,6 @@ func (c *Context) Query(key ...string) any {
 	}
 
 	// Obtener los parámetros de la URL para buscar el valor deseado
-
 	if len(key) == 0 {
 		// retorna todos los parametros de la query en un map
 		return c.queryToMap()

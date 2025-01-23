@@ -6,24 +6,18 @@ import (
 	"io"
 	"net/http"
 	"reflect"
-
-	"github.com/erespereza/new-project/pkg/validation"
 )
 
 type FormRequest interface {
-	Rules() map[string]validation.Validation // se debe implementar, proposito: retornar las reglas de validacion
-	PrepareForValidation() error             // se debe implementar, Propósito: Modifica o normaliza los datos del request y añadir lógica adicional antes de validar.
-	WithValidator() error                    // se debe implementar, Propósito: Permite añadir lógica adicional después de preparar el validador pero antes de que se realice la validación.
-	ParseQuery(r *http.Request)              // no se bede implementar, ya esta implementada en el Request
-	Validate(req *http.Request)              // no se bede implementar, ya esta implementada en el Request
+	PrepareForValidation() error // se debe implementar, Propósito: Modifica o normaliza los datos del request y añadir lógica adicional antes de validar.
+	WithValidator() error        // se debe implementar, Propósito: Permite añadir lógica adicional después de preparar el validador pero antes de que se realice la validación.
 }
 
 // Implementación de FormRequest para un struct
 type Request struct {
-	Query map[string]any
 }
 
-func (r *Request) Validate(request FormRequest, req *http.Request) error {
+func Validate(request FormRequest, req *http.Request) error {
 
 	// Usar reflect para validar que se trabaja con el tipo especifico y obtener el tipo de request y deserializar en el tipo real
 	requestValue := reflect.ValueOf(request)
@@ -54,9 +48,9 @@ func (r *Request) Validate(request FormRequest, req *http.Request) error {
 	}
 
 	// Validar el request con las reglas de validación
-	if err := validation.Struct(request, request.Rules()); err != nil {
-		return err
-	}
+	// if err := validation.Struct(request, request.Rules()); err != nil {
+	// 	return err
+	// }
 
 	// Si no hay errores, parsear los parámetros de la URL
 	//r.ParseQuery(req)

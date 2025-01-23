@@ -1,7 +1,9 @@
 package formatter
 
 import (
+	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -180,4 +182,42 @@ func Pluralize(word string) string {
 	}
 
 	return word + "s"
+}
+
+// ToFloat64 convierte un valor a float64
+func ToFloat64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | string](value T) (float64, error) {
+	switch v := any(value).(type) {
+	case int, int8, int16, int32, int64:
+		return float64(v.(int64)), nil
+	case uint, uint8, uint16, uint32, uint64:
+		return float64(v.(uint64)), nil
+	case float32, float64:
+		return float64(v.(float64)), nil
+	case string:
+		num, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0, fmt.Errorf("error al convertir string a float64: %v", err)
+		}
+		return num, nil
+	default:
+		return 0, fmt.Errorf("tipo no compatible para float64: %T", value)
+	}
+}
+
+// ToInt64 convierte un valor a int64
+func ToInt64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | string](value T) (int64, error) {
+	switch v := any(value).(type) {
+	case int, int8, int16, int32, int64:
+		return int64(v.(int64)), nil
+	case uint, uint8, uint16, uint32, uint64:
+		return int64(v.(uint64)), nil
+	case string:
+		num, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("error al convertir string a int64: %v", err)
+		}
+		return num, nil
+	default:
+		return 0, fmt.Errorf("tipo no compatible para int64: %T", value)
+	}
 }

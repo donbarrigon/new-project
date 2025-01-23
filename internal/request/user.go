@@ -1,22 +1,10 @@
 package request
 
-import "github.com/erespereza/new-project/pkg/validation"
-
 // Definir el struct a validar
 type User struct {
-	Request
-	Name  string
-	Email string
-	Age   int
-}
-
-// Define las reglas para la validacion
-func (u *User) Rules() map[string]validation.Validation {
-	return map[string]validation.Validation{
-		"Name":  {Required: true},
-		"Email": {Required: true, Email: true},
-		"Age":   {Min: validation.FloatPtr(0), Max: validation.FloatPtr(120)},
-	}
+	Name  string `json:"name" rules:"required|min:3|max:10"`
+	Email string `json:"email" rules:"required|email"`
+	Age   int    `json:"age" rules:"min:18"`
 }
 
 func (u *User) PrepareForValidation() error {
@@ -25,6 +13,6 @@ func (u *User) PrepareForValidation() error {
 }
 
 func (u *User) WithValidator() error {
-	// Añadir lógica adicional para añadir lógica adicional después de preparar el validador (por ejemplo, restringir el máximo de caracteres en el nombre)
+	// Añadir lógica adicional después de preparar el validador (por ejemplo, restringir el uso de palabras ofensivas)
 	return nil
 }
