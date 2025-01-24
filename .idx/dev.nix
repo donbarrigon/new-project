@@ -8,11 +8,19 @@
   packages = [
     pkgs.mariadb
     pkgs.go
+    pkgs.mysql-client
     # pkgs.python311
     # pkgs.python311Packages.pip
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
   ];
+
+    # See: https://nixos.wiki/wiki/Mysql
+  services.mysql = {
+    enable = true;
+    package = pkgs.mariadb;
+    # package = pkgs.mysql80; # For MySQL 8.0
+  };
 
   # Sets environment variables in the workspace
   env = {};
