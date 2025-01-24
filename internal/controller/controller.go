@@ -11,6 +11,7 @@ import (
 
 	"github.com/erespereza/new-project/internal/orm"
 	"github.com/erespereza/new-project/internal/request"
+	"github.com/erespereza/new-project/pkg/utils"
 )
 
 type ControllerFunc func(ctx *Context)
@@ -20,6 +21,7 @@ type Context struct {
 	Writer  http.ResponseWriter
 	Body    any
 	User    *orm.Model
+	Errors  map[string]string
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -111,11 +113,40 @@ func (c *Context) queryParam(key string) string {
 
 // Validate valida los datos del request y los guarda en c.Body
 // forma de uso if err := ctx.Validate([]FormRequest{}) err != nil { return err }
-func (c *Context) Validate(req []request.FormRequest) error {
+func (c *Context) Validate(req request.FormRequest) error {
+
+	isSlice, err1 := c.getBody(&req)
+	if err1 != nil {
+		return err1
+	}
+
+	if isSlice {
+		for _, r := range *c.Body.(*[]request.FormRequest) {
+			err := validateStruct(&r)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		if err := validateStruct(c.Body.(*request.FormRequest)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateStruct(req *request.FormRequest) error {
+	fmt.Println(req)
+	return nil
+}
+
+func (c *Context) getBody(req *request.FormRequest) (bool, error) {
 	// Leer completamente el cuerpo de la solicitud
+	isSlice := false
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		return fmt.Errorf("error leyendo el cuerpo de la solicitud: %v", err)
+		return isSlice, fmt.Errorf("error leyendo el cuerpo de la solicitud: %v", err)
 	}
 	defer c.Request.Body.Close()
 
@@ -125,22 +156,64 @@ func (c *Context) Validate(req []request.FormRequest) error {
 	switch body[0] {
 	case '[':
 		// JSON array - slice de implementaciones de FormRequest
-		if err := json.Unmarshal(body, &req); err != nil {
-			return fmt.Errorf("error decodificando array JSON: %v", err)
+		sliceReq := utils.StructToSlice(*req)
+		if err := json.Unmarshal(body, &sliceReq); err != nil {
+			return isSlice, fmt.Errorf("error decodificando array JSON: %v", err)
 		}
-		c.Body = &req
+		c.Body = &sliceReq
+		isSlice = true
 	case '{':
 		// JSON objeto
-		if err := json.Unmarshal(body, &req); err != nil {
-			return fmt.Errorf("error decodificando objeto JSON: %v", err)
+		if err := json.Unmarshal(body, req); err != nil {
+			return isSlice, fmt.Errorf("error decodificando objeto JSON: %v", err)
 		}
-		c.Body = &req[0]
+		c.Body = req
 	default:
-		return errors.New("el JSON debe ser un array u objeto")
+		return isSlice, errors.New("el JSON debe ser un array u objeto")
 	}
 
-	return nil
+	return isSlice, nil
 }
+
+// {
+//     "status": "error",
+//     "message": "Validation failed",
+//     "code": 422,
+//     "errors": {
+//         "email": [
+//             "The email field is required.",
+//             "The email must be a valid email address."
+//         ],
+//         "password": [
+//             "The password field is required.",
+//             "The password must be at least 8 characters."
+//         ],
+//         "username": [
+//             "The username field is required."
+//         ]
+//     }
+// }
+
+// {
+//     "status": "error",
+//     "message": "Error processing collection",
+//     "code": 422,
+//     "errors": [
+//         {
+//             "index": 0,
+//             "errors": {
+//                 "name": ["The name field is required."],
+//                 "email": ["The email must be a valid email address."]
+//             }
+//         },
+//         {
+//             "index": 1,
+//             "errors": {
+//                 "name": ["The name field is required."]
+//             }
+//         }
+//     ]
+// }
 
 /*
 func (c *Context) Validate_descartado(req *request.FormRequest) error {

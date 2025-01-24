@@ -48,15 +48,15 @@ type Permission struct {
 // UserRole tabla pivote para la relación many-to-many entre User y Role
 type UserRole struct {
 	ExtendsModel
-	UserID uint `json:"user_id" db:"PRIMARY KEY"`
-	RoleID uint `json:"role_id" db:"PRIMARY KEY"`
+	UserId uint `json:"user_id" db:"PRIMARY KEY"`
+	RoleId uint `json:"role_id" db:"PRIMARY KEY"`
 	CreatedAt
 }
 
 // UserPermission tabla pivote para la relación many-to-many entre User y Permission
 type UserPermission struct {
 	ExtendsModel
-	UserID       uint `json:"user_id" db:"PRIMARY KEY"`
+	UserId       uint `json:"user_id" db:"PRIMARY KEY"`
 	PermissionID uint `json:"permission_id" db:"PRIMARY KEY"`
 	CreatedAt
 }
@@ -64,17 +64,17 @@ type UserPermission struct {
 // RolePermission tabla pivote para la relación many-to-many entre Role y Permission
 type RolePermission struct {
 	ExtendsModel
-	RoleID       uint `json:"role_id" db:"PRIMARY KEY"`
+	RoleId       uint `json:"role_id" db:"PRIMARY KEY"`
 	PermissionID uint `json:"permission_id" db:"PRIMARY KEY"`
 	CreatedAt
 }
 
 // UserToken modelo para manejar tokens JWT
-type UserToken struct {
+type Token struct {
 	ExtendsModel
 	ID
 	Timestamps
-	UserID    uint      `json:"user_id" db:"NOT NULL"`
+	UserId    uint      `json:"user_id" db:"NOT NULL"`
 	Token     string    `json:"token" db:"TEXT NOT NULL"`
 	ExpiresAt time.Time `json:"expires_at" db:"NOT NULL"`
 	LastUsed  time.Time `json:"last_used" db:"DEFAULT CURRENT_TIMESTAMP"`
