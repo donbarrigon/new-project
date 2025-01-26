@@ -145,6 +145,12 @@ func Integer(name string, options ...string) Column {
 		Constraints: make(map[string]string),
 	}
 
+	Options(&column, options...)
+
+	return column
+}
+
+func Options(column *Column, options ...string) {
 	// Procesar cada opción proporcionada
 	for _, option := range options {
 		switch formatter.ToSnakeCase(option) {
@@ -201,6 +207,4 @@ func Integer(name string, options ...string) Column {
 			}
 		}
 	}
-
-	return column
 }
