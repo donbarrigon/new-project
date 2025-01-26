@@ -10,6 +10,10 @@ import (
 	"github.com/erespereza/new-project/pkg/formatter"
 )
 
+type AllowTypes interface {
+	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | time.Time | string
+}
+
 // Required valida que el campo no sea nulo ni vacío.
 func Required(value any) error {
 	if value == nil {
@@ -60,13 +64,9 @@ func Required(value any) error {
 	return nil
 }
 
-type numeric interface {
-	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | string
-}
-
 // Min valida si el valor es mayor o igual al mínimo.
 // Los strings se validan que la longitud de caracteres sea mayor o igual al mínimo.
-func Min[T numeric, U numeric](value T, min U) error {
+func Min[T AllowTypes, U AllowTypes](value T, min U) error {
 	switch v := any(value).(type) {
 	case string:
 		// Convierte los valores a int64 para comparar
@@ -99,7 +99,7 @@ func Min[T numeric, U numeric](value T, min U) error {
 
 // Max Valida si el valor es menor o igual al máximo.
 // los strings se valida que la longitud de caracteres sea menor o igual al máximo.
-func Max[T numeric, U numeric](value T, max U) error {
+func Max[T AllowTypes, U AllowTypes](value T, max U) error {
 	switch v := any(value).(type) {
 	case string:
 		// convierte los valores a int64 para comparar

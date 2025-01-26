@@ -1,25 +1,22 @@
 package controller
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/erespereza/new-project/internal/orm"
-	"github.com/erespereza/new-project/internal/request"
-	"github.com/erespereza/new-project/pkg/utils"
 )
 
 type ControllerFunc func(ctx *Context)
+
+type ValidationError map[string]any
+type FieldsError map[string][]string
 
 type Context struct {
 	Request *http.Request
 	Writer  http.ResponseWriter
 	Body    any
+	isSlice bool
 	User    *orm.Model
 	Errors  map[string]string
 }
@@ -31,42 +28,44 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	}
 }
 
-// Toma los valores de la url y los parsea en un map y lo retorna
-func (c *Context) ParseQuery() map[string]any {
-
-	// Inicializar el mapa Query si no está inicializado
-	query := make(map[string]any)
+// Toma los valores de la url y los parsea en un map[string]any o [int | float64 | bool | string] si es solo 1
+func (c *Context) ParseQuery(key ...string) any {
 
 	// Obtener los parámetros de la URL
-	queryParams := c.Request.URL.Query()
+	queryParams := c.Query(key...)
+
+	if len(key) == 1 {
+		return c.parseValue(queryParams.(string))
+	}
+
+	// Inicializar el mapa Query a retornar
+	query := make(map[string]any)
 
 	// Iterar sobre los parámetros de la URL
-	for key, values := range queryParams {
-		// El valor puede ser un solo valor o una lista, tomo solo el primer valor ya mas adelante cuando tenga tiempo me molesto en hacerlo con una lista ya que no se si eso es comun
-		value := ""
-		if len(values) > 0 {
-			value = values[0]
-		}
-
-		// Intentar convertir el valor a diferentes tipos
-		if intValue, err := strconv.Atoi(value); err == nil {
-			// Es un int
-			query[key] = intValue
-		} else if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
-			// Es un float
-			query[key] = floatValue
-		} else if boolValue, err := strconv.ParseBool(value); err == nil {
-			// Es un bool
-			query[key] = boolValue
-		} else {
-			// Es un string (por defecto)
-			query[key] = value
-		}
+	for k, value := range queryParams.(map[string]string) {
+		query[k] = c.parseValue(value)
 	}
 	return query
 }
 
-// Toma los valores de la cabecera y los retorna manejables
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2687351136.
+func (c *Context) parseValue(value string) any {
+	if intValue, err := strconv.Atoi(value); err == nil {
+		// Es un int
+		return intValue
+	} else if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
+		// Es un float
+		return floatValue
+	} else if boolValue, err := strconv.ParseBool(value); err == nil {
+		// Es un bool
+		return boolValue
+	} else {
+		// Es un string (por defecto)
+		return value
+	}
+}
+
+// Query es una forma menos verbosa de tomar los valores de la cabecera y los retorna en un map o string si es solo 1
 func (c *Context) Query(key ...string) any {
 	//validar para evitar un error
 	if c.Request == nil {
@@ -112,69 +111,158 @@ func (c *Context) queryParam(key string) string {
 }
 
 // Validate valida los datos del request y los guarda en c.Body
-// forma de uso if err := ctx.Validate([]FormRequest{}) err != nil { return err }
-func (c *Context) Validate(req request.FormRequest) error {
+// forma de uso if err := ctx.Validate(&FormRequest{}) err != nil { return err }
+// func (c *Context) Validate(req *request.FormRequest) ValidationError {
 
-	isSlice, err1 := c.getBody(&req)
-	if err1 != nil {
-		return err1
-	}
+// 	if err := c.getBody(req); err != nil {
+// 		return nil
+// 	}
 
-	if isSlice {
-		for _, r := range *c.Body.(*[]request.FormRequest) {
-			err := validateStruct(&r)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		if err := validateStruct(c.Body.(*request.FormRequest)); err != nil {
-			return err
-		}
-	}
+// 	if c.isSlice {
+// 		for _, r := range *c.Body.(*[]request.FormRequest) {
+// 			err := validateStruct(&r)
+// 			if err != nil {
+// 				return err
+// 			}
+// 		}
+// 	} else {
+// 		if err := validateStruct(c.Body.(*request.FormRequest)); err != nil {
+// 			return err
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func validateStruct(req *request.FormRequest) error {
-	fmt.Println(req)
-	return nil
-}
+// func (c *Context) getBody(req *request.FormRequest) error {
 
-func (c *Context) getBody(req *request.FormRequest) (bool, error) {
-	// Leer completamente el cuerpo de la solicitud
-	isSlice := false
-	body, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		return isSlice, fmt.Errorf("error leyendo el cuerpo de la solicitud: %v", err)
-	}
-	defer c.Request.Body.Close()
+// 	c.isSlice = false
 
-	// Eliminar espacios en blanco
-	body = bytes.TrimSpace(body)
+// 	// Leer completamente el cuerpo de la solicitud
+// 	body, err := io.ReadAll(c.Request.Body)
+// 	if err != nil {
+// 		return fmt.Errorf("error leyendo el cuerpo de la solicitud: %v", err)
+// 	}
+// 	defer c.Request.Body.Close()
 
-	switch body[0] {
-	case '[':
-		// JSON array - slice de implementaciones de FormRequest
-		sliceReq := utils.StructToSlice(*req)
-		if err := json.Unmarshal(body, &sliceReq); err != nil {
-			return isSlice, fmt.Errorf("error decodificando array JSON: %v", err)
-		}
-		c.Body = &sliceReq
-		isSlice = true
-	case '{':
-		// JSON objeto
-		if err := json.Unmarshal(body, req); err != nil {
-			return isSlice, fmt.Errorf("error decodificando objeto JSON: %v", err)
-		}
-		c.Body = req
-	default:
-		return isSlice, errors.New("el JSON debe ser un array u objeto")
-	}
+// 	// Eliminar espacios en blanco
+// 	body = bytes.TrimSpace(body)
 
-	return isSlice, nil
-}
+// 	switch body[0] {
+// 	case '[':
+// 		// JSON array - slice de implementaciones de FormRequest
+// 		sliceReq := utils.StructToSlice(*req)
+// 		if err := json.Unmarshal(body, &sliceReq); err != nil {
+// 			return fmt.Errorf("error decodificando array JSON: %v", err)
+// 		}
+// 		c.Body = &sliceReq
+// 		c.isSlice = true
+// 	case '{':
+// 		// JSON objeto
+// 		if err := json.Unmarshal(body, req); err != nil {
+// 			return fmt.Errorf("error decodificando objeto JSON: %v", err)
+// 		}
+// 		c.Body = req
+// 	default:
+// 		return errors.New("el JSON debe ser un array u objeto")
+// 	}
 
+// 	return nil
+// }
+
+// func validateStruct(req *request.FormRequest) FieldsError {
+// 	errors := make(FieldsError)
+// 	v := reflect.ValueOf(req)
+
+// 	// obtener el valor al que apunta el puntero
+// 	if v.Kind() == reflect.Ptr {
+// 		v = v.Elem()
+// 	}
+
+// 	t := v.Type()
+
+// 	numFilds := v.NumField()
+// 	for i := 0; i < numFilds; i++ {
+// 		field := v.Field(i)
+// 		fieldType := t.Field(i)
+
+// 		// Obtener las reglas de validación del tag
+// 		rulesTag := fieldType.Tag.Get("rules")
+// 		if rulesTag == "" {
+// 			// si no tiene reglas de validación, pasar al siguiente campo
+// 			continue
+// 		}
+
+// 		// Obtener el nombre JSON del campo
+// 		jsonTag := fieldType.Tag.Get("json")
+// 		fieldName := jsonTag
+// 		if fieldName == "" {
+// 			fieldName = formatter.ToSnakeCase(fieldType.Name)
+// 		}
+
+// 		// Procesar cada regla de validación
+// 		// si las reglas estan separadas por pipe
+// 		rules := strings.Split(rulesTag, "|")
+// 		if len(rules) == 1 {
+// 			// o por si si las reglas estan separadas por comas
+// 			rules = strings.Split(rulesTag, ",")
+// 		}
+// 		for _, rule := range rules {
+// 			validationError := validateField(field, rule)
+// 			if validationError != "" {
+// 				errors[fieldName] = append(errors[fieldName], validationError)
+// 			}
+// 		}
+// 	}
+
+// 	if len(errors) > 0 {
+// 		return errors
+// 	}
+// 	return nil
+// }
+
+// func validateField(field reflect.Value, rule string) string {
+// 	// Separar regla y parámetro si existe por :
+// 	parts := strings.Split(rule, ":")
+// 	if len(parts) == 1 {
+// 		// Separar regla y parámetro si existe por =
+// 		parts = strings.Split(rule, "=")
+// 	}
+// 	ruleType := parts[0]
+
+// 	switch ruleType {
+// 	case "required":
+// 		if err := validation.Required(field.Interface()); err != nil {
+// 			return err.Error()
+// 		}
+// 	case "min":
+// 		if len(parts) > 1 {
+// 			// paso de tener que saber cual es el tipo de dato para poder obtener su valo
+// 			// me tocaria crear otra funcion que determine el tipo y tome el valor correcto
+// 			// con tanta maricada que hay que hacer para esto mejor trabajo con maps
+// 			// voy a dejar esto comentado y archivado por si acaso y trabajo mejor con maps.
+// 			// ademas que lo mas seguro es que las ventajas de performance de usar un struct lo mas seguro es que se pierdan
+// 			// con tanta maricada que hay que hacer para cualquier cosa
+//			// puta de verdad que me mame de trabajar con structs te restringen tanto que hay que hacer el triple para que todo funcione
+// 			if err := validation.Min(field.Interface(), parts[1]); err != nil {
+// 				return err.Error()
+// 			}
+// 		}
+// 	case "max":
+// 		if len(parts) > 1 {
+// 			if err := validation.Max(field.Interface(), parts[1]); err != nil {
+// 				return err.Error()
+// 			}
+// 		}
+// 	case "email":
+// 		if err := validation.Email(field.Interface()); err != nil {
+// 			return err.Error()
+// 		}
+// 	}
+// 	return ""
+// }
+
+// formato para retornar errores
 // {
 //     "status": "error",
 //     "message": "Validation failed",

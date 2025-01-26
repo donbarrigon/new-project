@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (e *ExtendsModel) Find(id any, columns ...string) error {
+func (e *Model) Find(id any, columns ...string) error {
 
 	// Validar tipo de ID
 	switch id.(type) {

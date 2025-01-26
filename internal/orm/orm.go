@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
 
-	"github.com/erespereza/new-project/pkg/formatter"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -56,53 +54,53 @@ func Connect() {
 // columns es opcional, si no se proporciona se usan todos los campos del struct
 // se valida que almenos una de las columnas se valida para la busqueda
 
-func (e *ExtendsModel) scanRows(m *Model, row *sql.Row, columns []string) error {
+// func (e *ExtendsModel) scanRows(m *Model, row *sql.Row, columns []string) error {
 
-	// obtener el valor dinámico del modelo
-	modelValue := reflect.ValueOf(m)
-	// Obtener el tipo del struct
-	structType := modelValue.Elem().Type()
+// 	// obtener el valor dinámico del modelo
+// 	modelValue := reflect.ValueOf(m)
+// 	// Obtener el tipo del struct
+// 	structType := modelValue.Elem().Type()
 
-	// Crear slice para almacenar los valores de las columnas
-	// se hacen dos slices uno con los valores otro con las referencias por que a row.Scan hay que pasarle punteros
-	values := make([]interface{}, len(columns))
-	scanRefs := make([]interface{}, len(columns))
-	for i := range values {
-		scanRefs[i] = &values[i]
-	}
+// 	// Crear slice para almacenar los valores de las columnas
+// 	// se hacen dos slices uno con los valores otro con las referencias por que a row.Scan hay que pasarle punteros
+// 	values := make([]interface{}, len(columns))
+// 	scanRefs := make([]interface{}, len(columns))
+// 	for i := range values {
+// 		scanRefs[i] = &values[i]
+// 	}
 
-	// Escanear resultados
-	if err := row.Scan(scanRefs...); err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("registro no encontrado")
-		}
-		return fmt.Errorf("error al escanear resultados: %v", err)
-	}
+// 	// Escanear resultados
+// 	if err := row.Scan(scanRefs...); err != nil {
+// 		if err == sql.ErrNoRows {
+// 			return fmt.Errorf("registro no encontrado")
+// 		}
+// 		return fmt.Errorf("error al escanear resultados: %v", err)
+// 	}
 
-	// Asignar valores al struct
-	structValue := modelValue.Elem()
-	for i, colName := range columns {
-		// Convertir nombre de columna a PascalCase para que coincida con el del struct
-		colName = formatter.ToPascalCase(colName)
+// 	// Asignar valores al struct
+// 	structValue := modelValue.Elem()
+// 	for i, colName := range columns {
+// 		// Convertir nombre de columna a PascalCase para que coincida con el del struct
+// 		colName = formatter.ToPascalCase(colName)
 
-		// Buscar el campo correspondiente en el struct
-		var field reflect.Value
-		for j := 0; j < structType.NumField(); j++ {
-			if structType.Field(j).Name == colName {
-				field = structValue.Field(j)
-				break
-			}
-		}
+// 		// Buscar el campo correspondiente en el struct
+// 		var field reflect.Value
+// 		for j := 0; j < structType.NumField(); j++ {
+// 			if structType.Field(j).Name == colName {
+// 				field = structValue.Field(j)
+// 				break
+// 			}
+// 		}
 
-		if field.IsValid() && field.CanSet() {
-			// Convertir y asignar el valor
-			val := reflect.ValueOf(values[i])
-			if val.Type().ConvertibleTo(field.Type()) {
-				field.Set(val.Convert(field.Type()))
-			}
-			// aca hay un detalle que si no se puede convertir queda nulo ayayayay
-		}
-	}
+// 		if field.IsValid() && field.CanSet() {
+// 			// Convertir y asignar el valor
+// 			val := reflect.ValueOf(values[i])
+// 			if val.Type().ConvertibleTo(field.Type()) {
+// 				field.Set(val.Convert(field.Type()))
+// 			}
+// 			// aca hay un detalle que si no se puede convertir queda nulo ayayayay
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -185,7 +186,7 @@ func Pluralize(word string) string {
 }
 
 // ToFloat64 convierte un valor a float64
-func ToFloat64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | string](value T) (float64, error) {
+func ToFloat64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | time.Time | string](value T) (float64, error) {
 	switch v := any(value).(type) {
 	case int, int8, int16, int32, int64:
 		return float64(v.(int64)), nil
@@ -205,7 +206,7 @@ func ToFloat64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | ui
 }
 
 // ToInt64 convierte un valor a int64
-func ToInt64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | string](value T) (int64, error) {
+func ToInt64[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64 | time.Time | string](value T) (int64, error) {
 	switch v := any(value).(type) {
 	case int, int8, int16, int32, int64:
 		return int64(v.(int64)), nil
