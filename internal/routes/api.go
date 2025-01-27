@@ -1,6 +1,6 @@
 package routes
 
-import "github.com/erespereza/new-project/internal/controller"
+import "github.com/donbarrigon/new-project/internal/controller"
 
 var apiPublic = []Route{
 	{

@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 
-	"github.com/erespereza/new-project/internal/controller"
+	"github.com/donbarrigon/new-project/internal/controller"
 )
 
 type MiddlewareFunc func(controller.ControllerFunc) controller.ControllerFunc

@@ -1,53 +1,8 @@
 package model
 
 import (
-	"strings"
-
-	. "github.com/erespereza/new-project/internal/orm"
+	. "github.com/donbarrigon/new-project/internal/orm"
 )
-
-// User modelo para usuarios
-func NewUser() *Model {
-	model := &Model{}
-	model.MakeModel("user", Field{
-		"id": id(),
-		"name": Attributes{
-			"type": "string",
-		},
-		"email": Attributes{
-			"type": "string",
-		},
-		"password": Attributes{
-			"type": "string",
-		},
-	})
-	model.Fillable()
-	model.Guarded("password")
-	return model
-}
-
-func id(more ...string) Attributes {
-	attributes := Attributes{
-		"type":           "uint64",
-		"primary":        "true",
-		"auto_increment": "true",
-	}
-	return attributes
-}
-
-func toAttribute(attribute string)Attributes{
-	
-	value := AttributesMap[attribute]
-	if value == nil {
-		v := strings.Split(attribute, ":")
-		if len(v) == 2 {
-			value = Attributes{
-				v[0]: v[1],
-			}
-		}
-	}
-	return value
-}
 
 // NewUser función estática (la más eficiente) para crear la instancia a un struct de tipo usuario
 // func NewUser() *User {

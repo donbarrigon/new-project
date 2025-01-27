@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/erespereza/new-project/pkg/formatter"
+	"github.com/donbarrigon/new-project/pkg/formatter"
 )
 
 type AllowTypes interface {

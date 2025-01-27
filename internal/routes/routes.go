@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/erespereza/new-project/internal/controller"
-	"github.com/erespereza/new-project/internal/middleware"
+	"github.com/donbarrigon/new-project/internal/controller"
+	"github.com/donbarrigon/new-project/internal/middleware"
 )
 
 // constantes para poder escribir rutas bonitas

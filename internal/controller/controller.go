@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/erespereza/new-project/internal/orm"
+	"github.com/donbarrigon/new-project/internal/orm"
 )
 
 type ControllerFunc func(ctx *Context)

@@ -1,4 +1,4 @@
-module github.com/erespereza/new-project
+module github.com/donbarrigon/new-project
 
 go 1.23.4
 
