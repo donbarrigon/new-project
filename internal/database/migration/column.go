@@ -197,6 +197,16 @@ func Bytea(name string, options ...string) *Column {
 	return LongBlob(name, options...)
 }
 
+// JSON crea una columna tipo JSON con las opciones proporcionadas.
+func Json(name string, options ...string) *Column {
+	return defaultColumn(name, "json", options...)
+}
+
+// JSONB crea una columna tipo JSONB con las opciones proporcionadas.
+func Jsonb(name string, options ...string) *Column {
+	return defaultColumn(name, "jsonb", options...)
+}
+
 // Char crea una columna tipo CHAR con las opciones proporcionadas.
 // Char($name) crea una columna $name CHAR(255)
 // Char($name, $length) return $name CHAR($length)
@@ -496,7 +506,7 @@ func wrapValues(values []string) []string {
 	return values
 }
 
-// binary
+// cosas que me fatan por hacer
 // foreignId
 // foreignIdFor
 // foreignUlid
@@ -504,8 +514,6 @@ func wrapValues(values []string) []string {
 // geography
 // geometry
 // ipAddress
-// json
-// jsonb
 // macAddress
 // morphs
 // nullableMorphs
@@ -514,8 +522,6 @@ func wrapValues(values []string) []string {
 // nullableUuidMorphs
 // rememberToken
 // set
-// smallIncrements
-// smallInteger
 // ulidMorphs
 // uuidMorphs
 // ulid

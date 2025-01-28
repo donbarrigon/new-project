@@ -1,2 +1,5 @@
 package migration
 
+func New() {
+	
+}
