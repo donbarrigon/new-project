@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/erespereza/new-project/config"
-	"github.com/erespereza/new-project/internal/app"
-	"github.com/erespereza/new-project/internal/orm"
+	"github.com/donbarrigon/new-project/config"
+	"github.com/donbarrigon/new-project/internal/app"
+	"github.com/donbarrigon/new-project/internal/orm"
 )
 
 func main() {

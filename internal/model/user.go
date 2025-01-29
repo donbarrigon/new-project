@@ -1,8 +1,8 @@
 package model
 
-import (
-	. "github.com/donbarrigon/new-project/internal/orm"
-)
+// import (
+// 	. "github.com/donbarrigon/new-project/internal/orm"
+// )
 
 // NewUser función estática (la más eficiente) para crear la instancia a un struct de tipo usuario
 // func NewUser() *User {

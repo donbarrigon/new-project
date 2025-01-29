@@ -1,7 +1,7 @@
 package migration
 
 var ColumnTypesMap = map[string]map[string]string{
-	"mysql": map[string]string{
+	"mysql": {
 		"binary":      "binary",
 		"varbinary":   "VARBINARY",
 		"tinyblob":    "TINYBLOB",
@@ -37,7 +37,7 @@ var ColumnTypesMap = map[string]map[string]string{
 		"timestamptz": "TIMESTAMP",
 		"decimal":     "DECIMAL",
 	},
-	"postgresql": map[string]string{
+	"postgresql": {
 		"binary":      "BYTEA",
 		"varbinary":   "BYTEA",
 		"tinyblob":    "BYTEA",
@@ -88,7 +88,7 @@ var ConstraintsMap = map[string]map[string]string{
 		"on_delete":      "ON DELETE",      // Restricción para eliminar en clave foránea
 		"on_update":      "ON UPDATE",      // Restricción para actualizar en clave foránea
 	},
-	"postgresql": map[string]string{
+	"postgresql": {
 		"primary_key":    "PRIMARY KEY", // Clave primaria
 		"unique":         "UNIQUE",      // Restricción única
 		"not_null":       "NOT NULL",    // No nulo
@@ -111,7 +111,7 @@ type Column struct {
 	AutoIncrement bool              // Indica si la columna es autoincremental
 	PrimaryKey    bool              // Indica si es una clave primaria
 	Unique        bool              // Indica si tiene una restricción de UNIQUE
-	ForeignKey    *ForeignKey       // Relación con clave foránea (opcional)
+	ForeignKey    ForeignKey        // Relación con clave foránea (opcional)
 	Default       *string           // Valor por defecto (si aplica)
 	Check         *string           // Expresión para restricciones CHECK (opcional)
 	Comment       *string           // Comentario de la columna (opcional)
@@ -132,11 +132,11 @@ type Index struct {
 // FOREIGN KEY (usuario_id)
 // REFERENCES usuarios(id);
 type ForeignKey struct {
-	Column     string // Columna que actúa como clave foránea
-	References string // Columna de la tabla de referencia
-	On         string // Tabla de referencia
-	OnDelete   string // Acción en cascada (CASCADE, SET NULL, etc.)
-	OnUpdate   string // Acción al actualizar
+	Column    string // Columna que actúa como clave foránea
+	Reference string // Columna de la tabla de referencia
+	Table     string // Tabla de referencia
+	OnDelete  string // Acción en cascada (CASCADE, SET NULL, etc.)
+	OnUpdate  string // Acción al actualizar
 }
 
 type Table struct {
@@ -146,10 +146,15 @@ type Table struct {
 	Charset            string            // Conjunto de caracteres (utf8mb4, etc.)
 	Collation          string            // Collation de la tabla
 	PrimaryKeys        []string          // ColumnNames como claves primarias
-	Indexes            []Index           // Índices
-	ForeignKeys        []ForeignKey      // Claves foráneas
 	Constraints        map[string]string // Restricciones
 	AutoIncrementStart int               // Valor inicial del auto_increment
 	Temporary          bool              // Indica si es una tabla temporal
 	Comment            string            // Comentario de la tabla
+}
+
+type Schema struct {
+	Name      string   // Nombre del schema
+	Tables    []Table // Mapa de tablas del schema
+	Charset   string   // Charset por defecto para el schema
+	Collation string   // Collation por defecto para el schema
 }

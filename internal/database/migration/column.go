@@ -307,7 +307,7 @@ func Boolean(name string, options ...string) *Column {
 }
 
 // CreateAt retorna una columna de tipo TIMESTAMP que se utiliza para la creación
-func CreateAt(options ...string) *Column {
+func CreatedAt(options ...string) *Column {
 	defaultValue := "CURRENT_TIMESTAMP"
 	column := &Column{
 		Name:        "created_at",
@@ -321,7 +321,7 @@ func CreateAt(options ...string) *Column {
 }
 
 // UpdateAt retorna una columna de tipo TIMESTAMP que se utiliza para la actualización
-func UpdateAt(options ...string) *Column {
+func UpdatedAt(options ...string) *Column {
 	onUpdateValue := "CURRENT_TIMESTAMP"
 	column := &Column{
 		Name:        "updated_at",
@@ -335,7 +335,7 @@ func UpdateAt(options ...string) *Column {
 }
 
 // DeleteAt retorna una columna de tipo TIMESTAMP que se utiliza para la eliminación (soft delete)
-func DeleteAt(options ...string) *Column {
+func DeletedAt(options ...string) *Column {
 	column := &Column{
 		Name:        "deleted_at",
 		Type:        "timestamp",
@@ -470,16 +470,24 @@ func processOptions(column *Column, options ...string) {
 				onUpdate := option[9:] // Obtener el valor para OnUpdate
 				column.OnUpdate = &onUpdate
 			} else if len(option) > 3 && strings.ToLower(option[:3]) == "fk:" {
-				// Procesar claves foráneas con formato "fk:referenced_table(column)"
+				// Procesar claves foráneas con formatos:
+				// "fk: references column on table on update cascade ondelete cascade" con los constraits que nesesite
+				// "fk: table_name" solo el nombre de la tabla
+				// "fk:" (recomendado) si asi solito sin nada
 				foreignKeyParts := option[3:] // Obtener lo que está después de "fk:"
-				parts := strings.SplitN(foreignKeyParts, "(", 2)
-				if len(parts) == 2 && strings.HasSuffix(parts[1], ")") {
-					referencedTable := parts[0]
-					referencedColumn := strings.TrimSuffix(parts[1], ")")
-					column.ForeignKey = &ForeignKey{
-						ReferencedTable:  referencedTable,
-						ReferencedColumn: referencedColumn,
+				parts := strings.Split(foreignKeyParts, " ")
+				if foreignKeyParts == "" {
+					column.ForeignKey = Foreign(column.Name)
+				} else if len(parts) == 1 {
+					column.ForeignKey = Foreign(parts[0])
+				} else {
+					fkOptions := make([]string, 0)
+					// salto de dos en dos asi me aseguro de que vengan en pares y que el primero sea el constrait
+					// si puso un espacio donde no debia demalas que aprenda a escribir
+					for i := 1; i < len(parts); i = i + 2 {
+						fkOptions = append(fkOptions, parts[i-1]+":"+parts[i])
 					}
+					column.ForeignKey = Foreign(column.Name, fkOptions...)
 				}
 			} else {
 				// Manejar constraints personalizados
@@ -507,10 +515,6 @@ func wrapValues(values []string) []string {
 }
 
 // cosas que me fatan por hacer
-// foreignId
-// foreignIdFor
-// foreignUlid
-// foreignUuid
 // geography
 // geometry
 // ipAddress

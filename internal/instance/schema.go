@@ -1,18 +1,22 @@
 package instance
 
-import "github.com/donbarrigon/new-project/internal/database/migration"
+import (
+	"github.com/donbarrigon/new-project/internal/database/migration"
+)
 
-// variable donde se va a almacenar la estructura de la base de datos para que pueda ser accedida desde cualquier modelo en cualquier parte
-var schema map[string]migration.Table
+// variable donde se va a almacenar la estructura de la base de datos
+// para que pueda ser accedida desde cualquier modelo en cualquier parte
+// sin ir a buscar a la base de datos ni procesar nada que este ahi ala mano
+var schema migration.Schema
 
-func GetMigration(nameMigration string) migration.Table {
-	return schema[nameMigration]
+func GetTable(name string) *migration.Table {
+	
 }
 
-func SetMigration(nameMigration string, migration migration.Table) {
-	schema[nameMigration] = migration
+func GetSchema() *migration.Schema {
+	return &schema
 }
 
-func NewMigration(migrations ...map[string]migration.Table) {
-	schema = make(map[string]migration.Table)
+func NewSchema(db *migration.Schema) {
+	schema = *db
 }
