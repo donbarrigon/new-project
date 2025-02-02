@@ -1,21 +1,24 @@
 package routes
 
-import "github.com/donbarrigon/new-project/internal/controller"
+// import (
+// 	"github.com/donbarrigon/new-project/internal/controller"
+// 	. "github.com/donbarrigon/new-project/internal/routes/maker"
+// )
 
-var apiPublic = []Route{
-	{
-		Path:    "/user",
-		Methods: AllowMethods(get, post, delete),
-		Handler: controller.UserIndex,
-		Name:    "user-index",
-	},
-}
+// var ApiPublic = []Route{
+// 	{
+// 		Path:    "/mi/path",
+// 		Methods: AllowMethods(GET),
+// 		Handler: controller.Mifun,
+// 		Name:    "user-index",
+// 	},
+// }
 
-var apiPrivate = []Route{
-	{
-		Path:    "/user/show",
-		Methods: AllowMethods(get),
-		Handler: controller.UserShow,
-		Name:    "user-show",
-	},
-}
+// var ApiPrivate = []Route{
+// 	{
+// 		Path:    "/mi/priv/path",
+// 		Methods: AllowMethods(GET),
+// 		Handler: controller.MiFunPriv,
+// 		Name:    "user-show",
+// 	},
+// }

@@ -1,16 +1,26 @@
 package orm
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // db es la instancia global de la base de datos
 var db *sql.DB
+
+// MongoDBClient representa la conexión a la base de datos
+var dbc *mongo.Client
+var databaseName string
+var dbDriver string
 
 // Connect establece una conexión con la base de datos
 func Connect() {
@@ -18,7 +28,13 @@ func Connect() {
 	// Recomendación: Utilizar variables de entorno en lugar de hardcodear los datos de conexión a la base de datos para proteger la información sensible.
 	// Consulte https://12factor.net/config para más información sobre cómo se deben manejar las variables de entorno en aplicaciones Go.
 
-	dbDriver := os.Getenv("DB_DRIVER")
+	dbDriver = os.Getenv("DB_DRIVER")
+
+	if dbDriver == "mongodb" {
+		connectMongoDB()
+		return
+	}
+
 	if dbDriver == "" {
 		dbDriver = "mysql"
 	}
@@ -47,6 +63,43 @@ func Connect() {
 	}
 
 	log.Println("Conexión con la base de datos establecida.")
+}
+
+// ConnectDB inicializa la conexión con MongoDB
+func connectMongoDB() *mongo.Client {
+	// Cargar variables de entorno
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error cargando el archivo .env")
+	}
+
+	// Obtener URI y nombre de la base de datos desde .env
+	mongoURI := os.Getenv("MONGO_URI")
+
+	// Configurar opciones de conexión
+	clientOptions := options.Client().ApplyURI(mongoURI)
+
+	// Crear contexto con timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Conectar a MongoDB
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		log.Fatal("Error conectando a MongoDB:", err)
+	}
+
+	// Verificar la conexión
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatal("No se pudo conectar a MongoDB:", err)
+	}
+
+	dbc = client
+	databaseName = os.Getenv("DB_NAME")
+
+	fmt.Println("Conectado a MongoDB", dbc)
+	return client
 }
 
 // Find busca un registro en la base de datos basado en el ID

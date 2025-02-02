@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/donbarrigon/new-project/pkg/formatter"
+	"github.com/donbarrigon/new-project/lib/formatter"
 )
 
 // TinyInt crea una columna de tipo TINYINT con las opciones proporcionadas.
@@ -225,7 +225,6 @@ func Char(name string, options ...string) *Column {
 	column := &Column{
 		Name:        formatter.ToSnakeCase(name),
 		Type:        "char",
-		Nullable:    true,
 		Precision:   &length, // Usar la longitud calculada
 		Constraints: make(map[string]string),
 	}
@@ -253,7 +252,6 @@ func String(name string, options ...string) *Column {
 	column := &Column{
 		Name:        formatter.ToSnakeCase(name),
 		Type:        "varchar",
-		Nullable:    true,
 		Precision:   &length, // Usar la longitud calculada
 		Constraints: make(map[string]string),
 	}
@@ -268,7 +266,6 @@ func Decimal(name string, precision int, scale int, options ...string) *Column {
 	column := &Column{
 		Name:        formatter.ToSnakeCase(name),
 		Type:        "decimal",
-		Nullable:    true,
 		Precision:   &precision,
 		Scale:       &scale,
 		Constraints: make(map[string]string),
@@ -288,7 +285,7 @@ func Boolean(name string, options ...string) *Column {
 	column := &Column{
 		Name:        name,
 		Type:        "boolean",
-		Nullable:    false, // Por defecto, no permite valores nulos
+		Required:    true, // Por defecto, no permite valores nulos
 		Default:     &defaultValue,
 		Check:       &checkConstraint,
 		Constraints: make(map[string]string),
@@ -298,7 +295,7 @@ func Boolean(name string, options ...string) *Column {
 	processOptions(column, options...)
 
 	// Si la columna no permite NULL, se actualiza la restricción CHECK
-	if !column.Nullable {
+	if column.Required {
 		checkConstraint = fmt.Sprintf("%s IN (TRUE, FALSE) AND %s IS NOT NULL", name, name)
 		column.Check = &checkConstraint
 	}
@@ -312,7 +309,7 @@ func CreatedAt(options ...string) *Column {
 	column := &Column{
 		Name:        "created_at",
 		Type:        "timestamp",
-		Nullable:    false,
+		Required:    true,
 		Default:     &defaultValue,
 		Constraints: make(map[string]string),
 	}
@@ -326,7 +323,6 @@ func UpdatedAt(options ...string) *Column {
 	column := &Column{
 		Name:        "updated_at",
 		Type:        "timestamp",
-		Nullable:    true,
 		OnUpdate:    &onUpdateValue,
 		Constraints: make(map[string]string),
 	}
@@ -339,7 +335,6 @@ func DeletedAt(options ...string) *Column {
 	column := &Column{
 		Name:        "deleted_at",
 		Type:        "timestamp",
-		Nullable:    true,
 		Index:       true,
 		Constraints: make(map[string]string),
 	}
@@ -352,7 +347,6 @@ func Enum(name string, values []string, options ...string) *Column {
 	column := &Column{
 		Name:        formatter.ToSnakeCase(name),
 		Type:        "enum",
-		Nullable:    true,
 		Constraints: make(map[string]string),
 	}
 	// Agregar el constraint "CHECK" para simular un ENUM
@@ -375,7 +369,6 @@ func Binary(name string, options ...string) *Column {
 		Name:        formatter.ToSnakeCase(name),
 		Type:        "binary",
 		Precision:   &length,
-		Nullable:    true,
 		Constraints: make(map[string]string),
 	}
 	processOptions(column, options...)
@@ -396,7 +389,6 @@ func VarBinary(name string, options ...string) *Column {
 		Name:        formatter.ToSnakeCase(name),
 		Type:        "varbinary",
 		Precision:   &length,
-		Nullable:    true,
 		Constraints: make(map[string]string),
 	}
 	processOptions(column, options...)
@@ -410,7 +402,6 @@ func defaultColumn(name string, t string, options ...string) *Column {
 	column := &Column{
 		Name:        formatter.ToSnakeCase(name),
 		Type:        t,
-		Nullable:    true,
 		Constraints: make(map[string]string),
 	}
 	processOptions(column, options...)
@@ -424,7 +415,7 @@ func standardIncrementsColumn(t string, options ...string) *Column {
 	column := &Column{
 		Name:          "id",
 		Type:          t,
-		Nullable:      false,
+		Required:      true,
 		AutoIncrement: true,
 		PrimaryKey:    true,
 		Constraints:   make(map[string]string),
@@ -441,10 +432,12 @@ func processOptions(column *Column, options ...string) {
 	// Procesar cada opción proporcionada
 	for _, option := range options {
 		switch formatter.ToSnakeCase(option) {
+		case "required":
+			column.Required = true
 		case "not_null":
-			column.Nullable = false
+			column.Required = true
 		case "nullable":
-			column.Nullable = true
+			column.Required = false
 		case "auto_increment":
 			column.AutoIncrement = true
 		case "serial":

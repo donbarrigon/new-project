@@ -16,9 +16,16 @@ type Context struct {
 	Request *http.Request
 	Writer  http.ResponseWriter
 	Body    any
-	isSlice bool
-	User    *orm.Model
-	Errors  map[string]string
+	// isSlice bool
+	User   *orm.Model
+	Errors map[string]string
+}
+
+type ErrorResponse struct {
+	Status     string      `json:"status"`
+	Message    string      `json:"message"`
+	StatusCode int         `json:"status_code"`
+	Errors     interface{} `json:"errors"`
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {

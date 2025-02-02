@@ -1,4 +1,4 @@
-package instance
+package cache
 
 import (
 	"github.com/donbarrigon/new-project/internal/database/migration"
@@ -10,7 +10,12 @@ import (
 var schema migration.Schema
 
 func GetTable(name string) *migration.Table {
-	
+	for _, table := range schema.Tables {
+		if table.Name == name {
+			return &table
+		}
+	}
+	return nil
 }
 
 func GetSchema() *migration.Schema {

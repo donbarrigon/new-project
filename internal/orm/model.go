@@ -1,10 +1,16 @@
 package orm
 
+import (
+	"github.com/donbarrigon/new-project/internal/cache"
+	"github.com/donbarrigon/new-project/internal/database/migration"
+	"github.com/donbarrigon/new-project/lib/formatter"
+)
+
 // Model defines the contract for database models, inspired by Laravel's Eloquent ORM.
 type ModelInterface interface {
 
-	// SetMakeModel Model le dice al Model el modelo con el cual debe trabajar
-	MakeModel(tableName string, fields ...Field)
+	// Table le dice al Model la tabla o coleccion con la que va a trabajar y define si existe tiene o no migracion.
+	Table(name string)
 
 	// Fillable establece los atributos que son asignables en masa (mass-assignment).
 	// Recibe una lista de nombres de atributos que se pueden llenar de manera masiva.
@@ -15,79 +21,59 @@ type ModelInterface interface {
 	Guarded(fields ...string)
 
 	// BeforeSave se ejecuta antes de crear o actualizar el modelo en la base de datos.
-	BeforeSave() error
+	BeforeSave(hook func() error) error
 
 	// AfterSave se ejecuta despues de crear o actualizar el modelo en la base de datos.
-	AfterSave() error
+	AfterSave(hook func() error) error
 
 	// BeforeDelete se ejecuta antes de eliminar el modelo de la base de datos.
-	BeforeDelete() error
+	BeforeDelete(hook func() error) error
 
 	// AfterDelete se ejecuta despues de eliminar el modelo de la base de datos.
-	AfterDelete() error
+	AfterDelete(hook func() error) error
 
 	// BeforeCreate se ejecuta antes de crear el modelo en la base de datos.
-	BeforeCreate() error
+	BeforeCreate(hook func() error) error
 
 	// AfterCreate se ejecuta despues de crear el modelo en la base de datos.
-	AfterCreate() error
+	AfterCreate(hook func() error) error
 
 	// BeforeUpdate se ejecuta antes de actualizar el modelo de la base de datos.
-	BeforeUpdate() error
+	BeforeUpdate(hook func() error) error
 
 	// AfterUpdate se ejecuta despues de actualizar el modelo de la base de datos.
-	AfterUpdate() error
+	AfterUpdate(hook func() error) error
 
 	// Load loads a relationship (HasMany, BelongsTo, ManyToMany, etc.).
 	//Load(name ...string) any
 
 	// Find encuentra un modelo por el valor de primary key.
-	Find(id any, columns ...string) error
-}
-
-type Attributes map[string]string
-type Field map[string]Attributes
-
-var ConstraintsMap = map[string]Attributes{
-	"not null": Attributes{
-		"not null": "true",
-	},
-	"null": Attributes{
-		"null": "true",
-	},
-	"unique": Attributes{
-		"unique": "true",
-	},
-	"primary": Attributes{
-		"primary": "true",
-	},
-	"auto_increment": Attributes{
-		"auto_increment": "true",
-	},
-	"index": Attributes{
-		"index": "true",
-	},
+	// Find(id any, columns ...string) error
 }
 
 // estructura base para modelos
 type Model struct {
-	tableName string   // tableName es el nombre de la tabla
-	fields    Field    //estrutura de la base de datos para la migracion
-	fillable  []string // Fillable establece los atributos que son asignables en masa (mass-assignment).
-	guarded   []string // Guarded establece los atributos que no deben ser asignados de manera masiva.
+	tableName    string           // tableName es el nombre de la tabla
+	table        *migration.Table //estrutura de la base de datos para la migracion
+	hasMigration bool             // Indica si el modelo tiene una migración asociada
+	fillable     []string         // Fillable establece los atributos que son asignables en masa (mass-assignment).
+	guarded      []string         // Guarded establece los atributos que no deben ser asignados de manera masiva.
 
 	// variables que se usaran al construir la consulta
-	columns       []string
-	selectColumns []string
-	where         string
-	orderBy       string
+	// selectColumns []string
+	// where         string
+	// orderBy       string
 	// join          []Join
-	limit int
+	// limit int
 }
 
-func (m *Model) MakeModel(tableName string, fields Field) {
-	m.tableName = tableName
-	m.fields = fields
+func (m *Model) Table(name string) {
+	m.tableName = formatter.ToTableName(name)
+	// toma la estructura de la tabla segun la migracion
+	m.table = cache.GetTable(m.tableName)
+	if m.table != nil {
+		m.hasMigration = true
+	}
 }
 
 func (m *Model) Fillable(fields ...string) {
@@ -99,36 +85,36 @@ func (m *Model) Guarded(fields ...string) {
 }
 
 // funciones abstractas
-func (e *Model) BeforeSave() error {
-	return nil
+func (e *Model) BeforeSave(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) AfterSave() error {
-	return nil
+func (e *Model) AfterSave(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) BeforeDelete() error {
-	return nil
+func (e *Model) BeforeDelete(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) AfterDelete() error {
-	return nil
+func (e *Model) AfterDelete(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) BeforeCreate() error {
-	return nil
+func (e *Model) BeforeCreate(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) AfterCreate() error {
-	return nil
+func (e *Model) AfterCreate(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) BeforeUpdate() error {
-	return nil
+func (e *Model) BeforeUpdate(hook func() error) error {
+	return hook()
 }
 
-func (e *Model) AfterUpdate() error {
-	return nil
+func (e *Model) AfterUpdate(hook func() error) error {
+	return hook()
 }
 
 // // ID es una estructura base para modelos que requieran un id con autoincremento

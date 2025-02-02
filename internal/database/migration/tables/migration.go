@@ -3,11 +3,11 @@ package tables
 import (
 	"os"
 
+	"github.com/donbarrigon/new-project/internal/cache"
 	. "github.com/donbarrigon/new-project/internal/database/migration"
-	"github.com/donbarrigon/new-project/internal/instance"
 )
 
-// NewMigration crea la migracion y ademas 
+// NewMigration crea la migracion y ademas
 func NewMigration() {
 	// toma el nombre de la tabla del .env
 	schema := NewSchema(os.Getenv("DB_NAME"))
@@ -19,5 +19,5 @@ func NewMigration() {
 
 	// esta linea es la ultima si va a modificar algo del schema agalo antes de esta linea
 	// registra el schema para que los modelos accedan a el cuando lo nesesiten
-	instance.NewSchema(schema)
+	cache.NewSchema(schema)
 }

@@ -1,6 +1,45 @@
 package migration
 
 var ColumnTypesMap = map[string]map[string]string{
+	"mongodb": {
+		"binary":      "binData",
+		"varbinary":   "binData",
+		"tinyblob":    "binData",
+		"blob":        "binData",
+		"mediumblob":  "binData",
+		"longblob":    "binData",
+		"char":        "string",
+		"string":      "string",
+		"enum":        "string",
+		"tinytext":    "string",
+		"text":        "string",
+		"mediumtext":  "string",
+		"longtext":    "string",
+		"json":        "object",
+		"jsonb":       "object",
+		"int":         "int32",
+		"int8":        "int32",
+		"int16":       "int32",
+		"int32":       "int32",
+		"int64":       "int64",
+		"uint":        "int64",
+		"uint8":       "int32",
+		"uint16":      "int32",
+		"uint32":      "int64",
+		"uint64":      "int64",
+		"float32":     "double",
+		"float64":     "double",
+		"bool":        "bool",
+		"time":        "date",
+		"date":        "date",
+		"datetime":    "date",
+		"timestamp":   "date",
+		"timestamptz": "date",
+		"decimal":     "decimal128",
+		"objectId":    "objectId",
+		"array":       "array",
+		"document":    "document",
+	},
 	"mysql": {
 		"binary":      "binary",
 		"varbinary":   "VARBINARY",
@@ -76,6 +115,18 @@ var ColumnTypesMap = map[string]map[string]string{
 }
 
 var ConstraintsMap = map[string]map[string]string{
+	"mongodb": {
+		"primary_key":    "_id",      // MongoDB usa _id como clave primaria
+		"unique":         "unique",   // Restricción de unicidad en un índice
+		"not_null":       "required", // Equivalente a NOT NULL en esquemas de validación
+		"auto_increment": "objectId", // MongoDB usa ObjectId para generar identificadores únicos automáticamente
+		"check":          "expr",     // Se pueden usar expresiones en validaciones de esquemas
+		"default":        "default",  // Valor por defecto en esquemas de validación
+		"index":          "index",    // Índice en MongoDB
+		"foreign_key":    "lookup",   // Se simula con agregaciones ($lookup)
+		"on_delete":      "cascade",  // Se puede simular con triggers en la aplicación
+		"on_update":      "manual",   // No hay ON UPDATE, debe manejarse manualmente
+	},
 	"mysql": {
 		"primary_key":    "PRIMARY KEY",    // Clave primaria
 		"unique":         "UNIQUE",         // Restricción única
@@ -107,7 +158,7 @@ type Column struct {
 	Type          string            // Tipo de dato (por ejemplo, VARCHAR, INT, DECIMAL)           // Longitud (si aplica, como VARCHAR(255) o DECIMAL(10,2))
 	Precision     *int              // Precisión para tipos como VARCHAR(255) o DECIMAL(10,2)
 	Scale         *int              // Escala para tipos como DECIMAL (opcional)
-	Nullable      bool              // Indica si la columna permite valores NULL
+	Required      bool              // Indica si la columna permite valores NULL
 	AutoIncrement bool              // Indica si la columna es autoincremental
 	PrimaryKey    bool              // Indica si es una clave primaria
 	Unique        bool              // Indica si tiene una restricción de UNIQUE
@@ -153,8 +204,8 @@ type Table struct {
 }
 
 type Schema struct {
-	Name      string   // Nombre del schema
+	Name      string  // Nombre del schema
 	Tables    []Table // Mapa de tablas del schema
-	Charset   string   // Charset por defecto para el schema
-	Collation string   // Collation por defecto para el schema
+	Charset   string  // Charset por defecto para el schema
+	Collation string  // Collation por defecto para el schema
 }

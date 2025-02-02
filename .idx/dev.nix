@@ -22,6 +22,10 @@
     # package = pkgs.mysql80; # For MySQL 8.0
   };
 
+  services.mongodb = {
+    enable = true;
+  };
+
   # Sets environment variables in the workspace
   env = {};
   idx = {
@@ -56,8 +60,7 @@
       };
       # Runs when the workspace is (re)started
       onStart = {
-        # Example: start a background task to watch and re-build backend code
-        # watch-backend = "npm run watch-backend";
+        start-database = "mongod --port 27017 --fork --logpath ./.idx/database.log --dbpath ./.idx/.data";
       };
     };
   };

@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/donbarrigon/new-project/pkg/formatter"
+	"github.com/donbarrigon/new-project/lib/formatter"
 )
 
 // Foreign agrega una clave foranea a la tabla

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/donbarrigon/new-project/pkg/formatter"
+	"github.com/donbarrigon/new-project/lib/formatter"
 )
 
 // NewSchema crea una nueva instancia de Schema
