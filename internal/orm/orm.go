@@ -24,20 +24,17 @@ var dbDriver string
 
 // Connect establece una conexión con la base de datos
 func Connect() {
-	// Obtiene las variables de la base de datos desde el entorno (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_CHARSET, DB_COLLATION)
-	// Recomendación: Utilizar variables de entorno en lugar de hardcodear los datos de conexión a la base de datos para proteger la información sensible.
-	// Consulte https://12factor.net/config para más información sobre cómo se deben manejar las variables de entorno en aplicaciones Go.
 
 	dbDriver = os.Getenv("DB_DRIVER")
+	if dbDriver == "" {
+		dbDriver = "mongodb"
+	}
 
 	if dbDriver == "mongodb" {
 		connectMongoDB()
 		return
 	}
 
-	if dbDriver == "" {
-		dbDriver = "mysql"
-	}
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("DB_USER")

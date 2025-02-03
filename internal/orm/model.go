@@ -1,9 +1,12 @@
 package orm
 
 import (
+	"fmt"
+
 	"github.com/donbarrigon/new-project/internal/cache"
 	"github.com/donbarrigon/new-project/internal/database/migration"
 	"github.com/donbarrigon/new-project/lib/formatter"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Model defines the contract for database models, inspired by Laravel's Eloquent ORM.
@@ -53,14 +56,15 @@ type ModelInterface interface {
 
 // estructura base para modelos
 type Model struct {
-	tableName    string           // tableName es el nombre de la tabla
-	table        *migration.Table //estrutura de la base de datos para la migracion
-	hasMigration bool             // Indica si el modelo tiene una migración asociada
-	fillable     []string         // Fillable establece los atributos que son asignables en masa (mass-assignment).
-	guarded      []string         // Guarded establece los atributos que no deben ser asignados de manera masiva.
-
+	tableName       string           // tableName es el nombre de la tabla
+	table           *migration.Table //estrutura de la base de datos para la migracion
+	hasMigration    bool             // Indica si el modelo tiene una migración asociada
+	fillable        []string         // Fillable establece los atributos que son asignables en masa (mass-assignment).
+	guarded         []string         // Guarded establece los atributos que no deben ser asignados de manera masiva.
+	Data            []map[string]any // variable donde se guarda los resultados de los query
+	selectedColumns []string         // selectedColumns almacena las columnas que se usaran para la consulta
 	// variables que se usaran al construir la consulta
-	// selectColumns []string
+
 	// where         string
 	// orderBy       string
 	// join          []Join
@@ -115,6 +119,70 @@ func (e *Model) BeforeUpdate(hook func() error) error {
 
 func (e *Model) AfterUpdate(hook func() error) error {
 	return hook()
+}
+
+func (m *Model) convertToObjectID(id any) (primitive.ObjectID, error) {
+	switch v := id.(type) {
+	case string:
+		return primitive.ObjectIDFromHex(v)
+	case primitive.ObjectID:
+		return v, nil
+	case int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64:
+		// Convertimos a int64 y luego a string para hacer un ObjectID válido
+		idStr := fmt.Sprintf("%024d", v)
+		return primitive.ObjectIDFromHex(idStr)
+	default:
+		return primitive.NilObjectID, fmt.Errorf("ID no válido")
+	}
+}
+
+func (m *Model) HasColumn(column string) bool {
+	if m.table == nil {
+		return false
+	}
+	for _, col := range m.table.Columns {
+		if col.Name == column {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Model) GetColumnNames() []string {
+	if m.table == nil {
+		return nil
+	}
+
+	columnNames := make([]string, len(m.table.Columns))
+	for i, col := range m.table.Columns {
+		columnNames[i] = col.Name
+	}
+
+	return columnNames
+}
+
+func (m *Model) SetSelectedColumns(columns []string) error {
+	// Determinar las columnas a consultar
+	if len(columns) > 0 {
+		// Usar las columnas proporcionadas
+		m.selectedColumns = columns
+		// elimina la columna si no existe
+		if m.hasMigration {
+			for i, column := range columns {
+				if !m.HasColumn(column) {
+					columns = append(columns[:i], columns[i+1:]...)
+				}
+			}
+		}
+		if len(m.selectedColumns) == 0 {
+			return fmt.Errorf("no hay campos válidos para consultar")
+		}
+	}
+
+	// Usar las columnas de la migracion
+	m.selectedColumns = m.GetColumnNames()
+	return nil
 }
 
 // // ID es una estructura base para modelos que requieran un id con autoincremento

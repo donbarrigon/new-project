@@ -153,6 +153,24 @@ var ConstraintsMap = map[string]map[string]string{
 	},
 }
 
+type Index struct {
+	Columns []string // Columnas que componen el índice
+	Unique  bool     // Indica si el índice es único
+	Name    string   // Nombre opcional del índice
+}
+
+// ALTER TABLE ordenes
+// ADD CONSTRAINT fk_usuario
+// FOREIGN KEY (usuario_id)
+// REFERENCES usuarios(id);
+type ForeignKey struct {
+	Column    string // Columna que actúa como clave foránea
+	Reference string // Columna de la tabla de referencia
+	Table     string // Tabla de referencia
+	OnDelete  string // Acción en cascada (CASCADE, SET NULL, etc.)
+	OnUpdate  string // Acción al actualizar
+}
+
 type Column struct {
 	Name          string            // Nombre de la columna
 	Type          string            // Tipo de dato (por ejemplo, VARCHAR, INT, DECIMAL)           // Longitud (si aplica, como VARCHAR(255) o DECIMAL(10,2))
@@ -170,24 +188,6 @@ type Column struct {
 	Generated     *string           // Definición para columnas generadas (GENERATED AS o similar)
 	OnUpdate      *string           // Valor en operaciones UPDATE (como CURRENT_TIMESTAMP)
 	Constraints   map[string]string // Otros constraints personalizados
-}
-
-type Index struct {
-	Columns []string // Columnas que componen el índice
-	Unique  bool     // Indica si el índice es único
-	Name    string   // Nombre opcional del índice
-}
-
-// ALTER TABLE ordenes
-// ADD CONSTRAINT fk_usuario
-// FOREIGN KEY (usuario_id)
-// REFERENCES usuarios(id);
-type ForeignKey struct {
-	Column    string // Columna que actúa como clave foránea
-	Reference string // Columna de la tabla de referencia
-	Table     string // Tabla de referencia
-	OnDelete  string // Acción en cascada (CASCADE, SET NULL, etc.)
-	OnUpdate  string // Acción al actualizar
 }
 
 type Table struct {
